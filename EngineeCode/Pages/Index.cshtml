@@ -1,0 +1,117 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "الرئيسية";
+}
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-float a"></div>
+    <div class="hero-float b"></div>
+    <div class="hero-chip"><div class="pulse"></div>أحدث عروض رمضان الكريم 2026 🌙</div>
+    <h1>أفضل <span class="grad">مستلزمات الكمبيوتر</span><br>بأسعار لا تُقاوم</h1>
+    <p class="hero-sub">ماوس • كيبورد • سماعات • كاميرات<br>وسيستم كاشير احترافي لإدارة أعمالك</p>
+    <div class="hero-actions">
+        <a class="btn-hero primary" asp-page="/Products">🛒 تصفح المنتجات</a>
+        <a class="btn-hero outline" asp-page="/Cashier">🖥️ نظام الكاشير</a>
+    </div>
+</section>
+
+<!-- STATS STRIP -->
+<div class="stats-strip">
+    <div class="stats-inner">
+        <div class="stat-box"><div class="stat-n" data-count="500">0</div><div class="stat-l">عميل راضي</div></div>
+        <div class="stat-box"><div class="stat-n" data-count="50">0</div><div class="stat-l">منتج متاح</div></div>
+        <div class="stat-box"><div class="stat-n" data-count="3">0</div><div class="stat-l">سنوات خبرة</div></div>
+        <div class="stat-box"><div class="stat-n">24/7</div><div class="stat-l">دعم فني</div></div>
+    </div>
+</div>
+
+<!-- FEATURED PRODUCTS -->
+<div class="section-wrap">
+    <div class="section-head reveal">
+        <div class="section-tag">أبرز المنتجات</div>
+        <h2 class="section-h">الأكثر <em>مبيعاً</em></h2>
+        <p class="section-p">اختارها عملاؤنا بكثرة — جودة عالية وأسعار منافسة</p>
+    </div>
+
+    <!-- يتم عرضهم من API -->
+    <div class="products-grid" id="featuredGrid">
+        <div class="loading-spinner">جاري التحميل...</div>
+    </div>
+
+    <div style="text-align:center;margin-top:36px;">
+        <a class="btn-hero primary" asp-page="/Products">عرض كل المنتجات ←</a>
+    </div>
+</div>
+
+<!-- SERVICES QUICK -->
+<div class="bg-alt" style="position:relative;z-index:1;">
+    <div class="section-wrap">
+        <div class="section-head reveal">
+            <div class="section-tag">خدماتنا</div>
+            <h2 class="section-h">ماذا <em>نقدم؟</em></h2>
+        </div>
+        <div class="srv-grid" id="srvHome">
+            <div class="loading-spinner">جاري التحميل...</div>
+        </div>
+    </div>
+</div>
+
+<!-- PAYMENT METHODS -->
+<!-- PAYMENT METHODS -->
+<div class="section-wrap" style="padding-top:0;">
+    <div class="payment-strip reveal">
+        <span class="pay-label">🔒 ادفع بأمان عبر:</span>
+
+        <span class="pay-icon">
+            <img src="~/images/visa.png" alt="Visa" style="height:60px; object-fit:contain;" />
+        </span>
+        <span class="pay-icon">
+            <img src="~/images/card.png" alt="MasterCard" style="height:60px; object-fit:contain;" />
+        </span>
+        <span class="pay-icon">
+            <img src="~/images/paypal.png" alt="PayPal" style="height:60px; object-fit:contain;" />
+        </span>
+        <span class="pay-icon">
+            <img src="~/images/vc.png" alt="Vodafone Cash" style="height:60px; object-fit:contain;" />
+        </span>
+        <span class="pay-icon">
+            <img src="~/images/cash.png" alt="Cash on Delivery" style="height:60px; object-fit:contain;" />
+        </span>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // جلب المنتجات المميزة من API
+        async function loadFeaturedProducts() {
+            try {
+                const res = await fetch('/api/products?featured=true&limit=4');
+                const products = await res.json();
+                document.getElementById('featuredGrid').innerHTML = products.map(productCardHTML).join('');
+                setupReveal();
+            } catch (e) {
+                document.getElementById('featuredGrid').innerHTML = '<p style="color:var(--text-muted);text-align:center">تعذر تحميل المنتجات</p>';
+            }
+        }
+
+        // جلب الخدمات من API
+        async function loadServices() {
+            try {
+                const res = await fetch('/api/services?limit=4');
+                const services = await res.json();
+                document.getElementById('srvHome').innerHTML = services.map(serviceCardHTML).join('');
+            } catch (e) {
+                document.getElementById('srvHome').innerHTML = '<p style="color:var(--text-muted);text-align:center">تعذر تحميل الخدمات</p>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFeaturedProducts();
+            loadServices();
+            animateCounters();
+            setupReveal();
+        });
+    </script>
+}

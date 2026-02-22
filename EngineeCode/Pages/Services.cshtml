@@ -1,0 +1,41 @@
+﻿@page
+@model ServicesModel
+@{
+    ViewData["Title"] = "الخدمات";
+}
+
+<div class="section-wrap" style="padding-top:100px;">
+    <div class="section-head reveal">
+        <div class="section-tag">خدماتنا</div>
+        <h2 class="section-h">حلول <em>متكاملة</em></h2>
+        <p class="section-p">كل ما تحتاجه من تقنية وبرمجة وصيانة</p>
+    </div>
+
+    <!-- بيتملى من API -->
+    <div class="srv-grid" id="srvFull">
+        <div class="loading-spinner" style="text-align:center;color:var(--text-muted);padding:60px;">
+            ⏳ جاري تحميل الخدمات...
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function loadServices() {
+            try {
+                const res = await fetch('/api/services');
+                const services = await res.json();
+                document.getElementById('srvFull').innerHTML = services.map(serviceCardHTML).join('');
+                setupReveal();
+            } catch (e) {
+                document.getElementById('srvFull').innerHTML =
+                    '<p style="color:var(--text-muted);text-align:center">تعذر تحميل الخدمات 😕</p>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadServices();
+            setupReveal();
+        });
+    </script>
+}

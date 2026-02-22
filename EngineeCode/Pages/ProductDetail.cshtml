@@ -1,0 +1,21 @@
+﻿@page
+@model ProductDetailModel
+@{
+    ViewData["Title"] = "تفاصيل المنتج";
+}
+
+<div class="section-wrap" style="padding-top:100px; min-height:80vh;">
+
+    <!-- زرار الرجوع -->
+    <div style="margin-bottom:24px;">
+        <a href="/Products" class="back-btn">&#8592; رجوع للمنتجات</a>
+    </div>
+
+    <!-- المحتوى بيتحمل هنا من JS -->
+    <div id="productDetailWrap">
+        <div style="text-align:center;padding:100px;color:var(--text-muted);">
+            &#x23F3; جاري تحميل المنتج...
+        </div>
+    </div>
+
+</div>

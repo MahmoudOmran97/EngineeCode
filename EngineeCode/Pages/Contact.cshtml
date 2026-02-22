@@ -1,0 +1,116 @@
+﻿@page
+@model ContactModel
+@{
+    ViewData["Title"] = "تواصل معنا";
+}
+
+<div class="section-wrap" style="padding-top:100px;">
+    <div class="section-head reveal">
+        <div class="section-tag">تواصل معنا</div>
+        <h2 class="section-h">نحن هنا <em>لمساعدتك</em></h2>
+    </div>
+
+    <div class="contact-split">
+
+        <!-- Contact Info Cards -->
+        <div class="contact-cards-v reveal">
+            <a href="tel:01118324397" class="ccard">
+                <div class="ccard-icon">📞</div>
+                <div>
+                    <div class="ccard-label">اتصل بنا</div>
+                    <div class="ccard-val">01118324397</div>
+                </div>
+            </a>
+            <a href="https://wa.me/201118324397" target="_blank" class="ccard">
+                <div class="ccard-icon">
+                    <img src="~/images/whatsapp.png" alt="WhatsApp"
+                         style="width:36px; height:36px; object-fit:contain;" />
+                </div>
+                <div>
+                    <div class="ccard-label">واتساب</div>
+                    <div class="ccard-val">01118324397</div>
+                </div>
+            </a>
+
+            <a href="https://www.facebook.com/profile.php?id=61565693706435t" target="_blank" class="ccard">
+                <div class="ccard-icon">
+                    <img src="~/images/facebook.png" alt="Facebook"
+                         style="width:36px; height:36px; object-fit:contain;" />
+                </div>
+                <div>
+                    <div class="ccard-label">فيسبوك</div>
+                    <div class="ccard-val">@@EngineeCode</div>
+                </div>
+            </a>
+            <a href="mailto:info@engineecode.com" class="ccard">
+                <div class="ccard-icon">📧</div>
+                <div>
+                    <div class="ccard-label">إيميل</div>
+                    <div class="ccard-val">info@engineecode.com</div>
+                </div>
+            </a>
+            <div class="ccard" style="cursor:default;">
+                <div class="ccard-icon">🌐</div>
+                <div>
+                    <div class="ccard-label">الموقع</div>
+                    <div class="ccard-val">ENGINEECODE.EGYPT</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="cform reveal">
+            <h3>📩 ابعت لنا رسالة</h3>
+
+            @if (Model.MessageSent)
+            {
+                <div class="alert-success" style="background:rgba(38,166,154,.15);border:1px solid var(--green);border-radius:12px;padding:14px 18px;margin-bottom:20px;color:var(--green);font-weight:600;">
+                    ✅ تم إرسال رسالتك بنجاح! سنتواصل معك قريباً 🚀
+                </div>
+            }
+
+            <form method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="Input.Name">الاسم</label>
+                        <input asp-for="Input.Name" type="text" placeholder="اسمك الكريم" />
+                        <span asp-validation-for="Input.Name" style="color:var(--red);font-size:12px;"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Input.Phone">رقم التليفون</label>
+                        <input asp-for="Input.Phone" type="tel" placeholder="01xxxxxxxxx" />
+                        <span asp-validation-for="Input.Phone" style="color:var(--red);font-size:12px;"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.Subject">موضوع الرسالة</label>
+                    <select asp-for="Input.Subject">
+                        <option value="product">استفسار عن منتج</option>
+                        <option value="cashier">طلب سيستم كاشير</option>
+                        <option value="maintenance">صيانة وأعطال</option>
+                        <option value="partnership">تعاون ومقترحات</option>
+                        <option value="other">شيء آخر</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.Message">الرسالة</label>
+                    <textarea asp-for="Input.Message" rows="4" placeholder="اكتب رسالتك هنا..."></textarea>
+                    <span asp-validation-for="Input.Message" style="color:var(--red);font-size:12px;"></span>
+                </div>
+
+                <button type="submit" class="submit-btn">إرسال الرسالة 🚀</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', setupReveal);
+    </script>
+}

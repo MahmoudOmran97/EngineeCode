@@ -1,0 +1,42 @@
+﻿@page
+@model AboutModel
+@{
+    ViewData["Title"] = "من نحن";
+}
+
+<div class="section-wrap" style="padding-top:100px;">
+    <div class="about-grid">
+
+        <!-- Left: Image -->
+        <div class="about-img-wrap reveal">
+            <img src="~/images/about-engineecode.png" alt="EngineeCode - متجر مستلزمات الكمبيوتر" />
+        </div>
+
+        <!-- Right: Text Content -->
+        <div class="about-text reveal">
+            <div class="section-tag">من نحن</div>
+            <h2><em>EngineeCode</em><br>Software Development & Innovation</h2>
+            <p>
+                شركة EngineeCode متخصصة في توفير مستلزمات الكمبيوتر والكاميرات بأعلى جودة وأسعار منافسة،
+                مع تقديم حلول برمجية متكاملة لأنظمة نقطة البيع والكاشير.
+            </p>
+            <p>
+                نعمل منذ 2021 ونخدم أكثر من 500 عميل في جميع أنحاء مصر،
+                ونلتزم دائماً بتقديم أفضل خدمة ما بعد البيع ودعم فني على مدار الساعة.
+            </p>
+            <div class="about-vals">
+                <div class="val-chip">🏆 <span>جودة مضمونة</span></div>
+                <div class="val-chip">🚀 <span>تسليم سريع</span></div>
+                <div class="val-chip">🔧 <span>دعم فني 24/7</span></div>
+                <div class="val-chip">💰 <span>أسعار منافسة</span></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', setupReveal);
+    </script>
+}

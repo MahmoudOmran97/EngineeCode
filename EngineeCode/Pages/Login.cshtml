@@ -1,0 +1,239 @@
+﻿@page
+@model LoginModel
+@{
+    ViewData["Title"] = "تسجيل الدخول";
+    Layout = "_Layout";
+}
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-logo">
+            <div class="brand">⚡ EngineeCode</div>
+            <p>سجّل دخولك لمتابعة طلباتك</p>
+        </div>
+
+        <div class="alert-custom alert-error" id="alertBox"></div>
+
+        <!-- Step 1: الإيميل -->
+        <div class="step active" id="step1">
+            <label class="form-label">البريد الإلكتروني</label>
+            <input type="email" class="form-control-custom" id="emailInput"
+                   placeholder="example@gmail.com" autocomplete="email" />
+            <button class="btn-gold" id="sendBtn" onclick="sendOtp()">
+                إرسال الكود
+                <span class="spinner" id="spinner1"></span>
+            </button>
+
+            <p style="text-align:center; margin-top:20px; color:#888; font-size:13px; line-height:1.8;">
+                عميل جديد؟
+                <a href="/Register" style="color:var(--gold); text-decoration:none; font-weight:700;">
+                    أنشئ حسابك مجاناً ←
+                </a>
+            </p>
+        </div>
+
+        <!-- Step 2: كود OTP -->
+        <div class="step" id="step2">
+            <p style="color:#aaa; font-size:14px; text-align:center; margin-bottom:10px;">
+                تم إرسال كود التحقق إلى
+            </p>
+            <div class="email-display" id="emailDisplay"></div>
+
+            <div class="otp-container">
+                <input type="text" class="otp-input" maxlength="1" id="otp0" inputmode="numeric" />
+                <input type="text" class="otp-input" maxlength="1" id="otp1" inputmode="numeric" />
+                <input type="text" class="otp-input" maxlength="1" id="otp2" inputmode="numeric" />
+                <input type="text" class="otp-input" maxlength="1" id="otp3" inputmode="numeric" />
+                <input type="text" class="otp-input" maxlength="1" id="otp4" inputmode="numeric" />
+                <input type="text" class="otp-input" maxlength="1" id="otp5" inputmode="numeric" />
+            </div>
+
+            <div class="timer-text">
+                الكود صالح لمدة <span id="timerDisplay">10:00</span>
+            </div>
+            <button class="resend-btn" id="resendBtn" onclick="sendOtp(true)">
+                إعادة إرسال الكود
+            </button>
+
+            <button class="btn-gold" id="verifyBtn" onclick="verifyOtp()">
+                تحقق وسجّل الدخول
+                <span class="spinner" id="spinner2"></span>
+            </button>
+
+            <button onclick="goBack()" style="width:100%; background:none; border:1px solid #333;
+                    border-radius:10px; padding:12px; color:#888; cursor:pointer;
+                    margin-top:10px; font-size:14px; font-family:inherit;">
+                ← تغيير الإيميل
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var userEmail = '';
+        var timerInterval = null;
+
+        // ===== OTP Inputs =====
+        document.querySelectorAll('.otp-input').forEach(function(input, i, inputs) {
+            input.addEventListener('input', function(e) {
+                var val = e.target.value.replace(/[^0-9]/g, '');
+                e.target.value = val;
+                if (val) {
+                    e.target.classList.add('filled');
+                    if (i < inputs.length - 1) inputs[i + 1].focus();
+                } else {
+                    e.target.classList.remove('filled');
+                }
+                if (Array.from(inputs).every(function(inp) { return inp.value !== ''; })) {
+                    verifyOtp();
+                }
+            });
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && !input.value && i > 0) {
+                    inputs[i - 1].focus();
+                    inputs[i - 1].value = '';
+                    inputs[i - 1].classList.remove('filled');
+                }
+            });
+            input.addEventListener('paste', function(e) {
+                var pasted = e.clipboardData.getData('text')
+                    .replace(/[^0-9]/g, '').slice(0, 6);
+                pasted.split('').forEach(function(ch, idx) {
+                    if (inputs[idx]) {
+                        inputs[idx].value = ch;
+                        inputs[idx].classList.add('filled');
+                    }
+                });
+                e.preventDefault();
+                if (pasted.length === 6) verifyOtp();
+            });
+        });
+
+        // ===== Send OTP (Login) =====
+        function sendOtp(isResend) {
+            isResend = isResend || false;
+            var emailVal = document.getElementById('emailInput').value.trim();
+
+            if (!isResend && !emailVal) { showAlert('من فضلك أدخل إيميلك'); return; }
+
+            var email = isResend ? userEmail : emailVal;
+            if (!email.includes('@@') || !email.includes('.')) { showAlert('إيميل غير صحيح'); return; }
+
+            setLoading('sendBtn', 'spinner1', true);
+            hideAlert();
+
+            // ✅ عبر الـ Proxy — يقبل الإيميلات المسجلة فقط
+            fetch('/api/proxy/send-login-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    userEmail = email;
+                    document.getElementById('emailDisplay').textContent = email;
+                    showStep('step2');
+                    startTimer(600);
+                    document.getElementById('otp0').focus();
+                } else {
+                    if (data.message && data.message.includes('غير مسجل')) {
+                        showAlert('هذا الإيميل غير مسجل. <a href="/Register" style="color:var(--gold);">سجّل حساباً جديداً</a>');
+                    } else {
+                        showAlert(data.message || 'حدث خطأ');
+                    }
+                }
+            })
+            .catch(function() { showAlert('فشل الاتصال بالسيرفر'); })
+            .finally(function() { setLoading('sendBtn', 'spinner1', false); });
+        }
+
+        // ===== Verify OTP (Login) =====
+        function verifyOtp() {
+            var inputs = document.querySelectorAll('.otp-input');
+            var code = Array.from(inputs).map(function(inp) { return inp.value; }).join('');
+            if (code.length !== 6) { showAlert('من فضلك أكمل الكود'); return; }
+
+            setLoading('verifyBtn', 'spinner2', true);
+            hideAlert();
+
+            // ✅ عبر الـ Proxy — بيسيت CustomerEmail في الـ Session
+            fetch('/api/proxy/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail, code: code })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    clearInterval(timerInterval);
+                    var returnUrl = new URLSearchParams(window.location.search).get('returnUrl') || '/Profile';
+                    window.location.href = returnUrl;
+                } else {
+                    showAlert(data.message || 'الكود غلط أو منتهي الصلاحية');
+                    document.querySelectorAll('.otp-input').forEach(function(inp) {
+                        inp.value = ''; inp.classList.remove('filled');
+                    });
+                    document.getElementById('otp0').focus();
+                }
+            })
+            .catch(function() { showAlert('فشل الاتصال بالسيرفر'); })
+            .finally(function() { setLoading('verifyBtn', 'spinner2', false); });
+        }
+
+        // ===== Timer =====
+        function startTimer(seconds) {
+            clearInterval(timerInterval);
+            var display = document.getElementById('timerDisplay');
+            var resendBtn = document.getElementById('resendBtn');
+            resendBtn.style.display = 'none';
+
+            timerInterval = setInterval(function() {
+                var m = Math.floor(seconds / 60);
+                var s = seconds % 60;
+                display.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+                if (seconds <= 0) {
+                    clearInterval(timerInterval);
+                    display.textContent = '0:00';
+                    resendBtn.style.display = 'block';
+                }
+                seconds--;
+            }, 1000);
+        }
+
+        // ===== Helpers =====
+        function showStep(id) {
+            document.querySelectorAll('.step').forEach(function(s) { s.classList.remove('active'); });
+            document.getElementById(id).classList.add('active');
+        }
+
+        function goBack() {
+            clearInterval(timerInterval);
+            showStep('step1');
+            hideAlert();
+            document.querySelectorAll('.otp-input').forEach(function(inp) {
+                inp.value = ''; inp.classList.remove('filled');
+            });
+        }
+
+        function showAlert(msg) {
+            var el = document.getElementById('alertBox');
+            el.innerHTML = msg;
+            el.style.display = 'block';
+        }
+
+        function hideAlert() {
+            document.getElementById('alertBox').style.display = 'none';
+        }
+
+        function setLoading(btnId, spinnerId, loading) {
+            document.getElementById(btnId).disabled = loading;
+            document.getElementById(spinnerId).style.display = loading ? 'inline-block' : 'none';
+        }
+
+        document.getElementById('emailInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') sendOtp();
+        });
+    </script>
+}

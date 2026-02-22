@@ -1,0 +1,375 @@
+﻿@page "/order/{id:int}"
+@model EngineeCode.Pages.OrderDetailModel
+@{
+    ViewData["Title"] = "تفاصيل الطلب";
+    Layout = "_Layout";
+}
+
+<style>
+    .order-detail-header {
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border);
+        padding: 36px 0 28px;
+    }
+
+    [data-theme="dark"] .order-detail-header {
+        background: linear-gradient(135deg, #0a1628 0%, #0d1f3c 100%);
+    }
+
+    [data-theme="light"] .order-detail-header {
+        background: linear-gradient(135deg, #e8f0fe 0%, #f0f4ff 100%);
+    }
+
+    .order-detail-body {
+        max-width: 900px;
+        margin: 36px auto;
+        padding: 0 24px;
+    }
+
+    /* Timeline */
+    .status-timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        position: relative;
+        margin: 28px 0;
+        padding: 0 10px;
+    }
+
+        .status-timeline::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: 10%;
+            left: 10%;
+            height: 2px;
+            background: var(--border);
+            z-index: 0;
+        }
+
+    .timeline-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        z-index: 1;
+        flex: 1;
+    }
+
+    .timeline-dot {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--bg-card);
+        border: 2px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: all .3s;
+    }
+
+    .timeline-step.done .timeline-dot {
+        background: var(--green);
+        border-color: var(--green);
+    }
+
+    .timeline-step.active .timeline-dot {
+        background: var(--gold);
+        border-color: var(--gold);
+        box-shadow: 0 0 0 4px rgba(245,166,35,.2);
+    }
+
+    .timeline-step.cancelled .timeline-dot {
+        background: var(--red);
+        border-color: var(--red);
+    }
+
+    .timeline-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .timeline-step.done .timeline-label,
+    .timeline-step.active .timeline-label {
+        color: var(--text-primary);
+    }
+
+    /* Product items in order */
+    .order-item-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+        .order-item-row:last-child {
+            border-bottom: none;
+        }
+
+    .order-item-img {
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
+        background: var(--bg-base);
+        border-radius: 10px;
+        padding: 6px;
+        flex-shrink: 0;
+        border: 1px solid var(--border);
+    }
+
+    .order-item-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+
+    .order-item-meta {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .order-item-total {
+        margin-right: auto;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--gold);
+        white-space: nowrap;
+    }
+
+    /* Summary box */
+    .order-totals {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px 24px;
+        margin-top: 20px;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: var(--text-secondary);
+        padding: 7px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+        .total-row:last-child {
+            border: none;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+            .total-row:last-child span:last-child {
+                color: var(--gold);
+            }
+
+    /* Info grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 20px;
+    }
+
+    @@media (max-width: 600px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .status-timeline {
+            gap: 4px;
+        }
+
+        .timeline-dot {
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
+        }
+
+        .timeline-label {
+            font-size: 10px;
+        }
+
+        .order-detail-body {
+            padding: 0 14px;
+        }
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        transition: all .2s;
+        margin-bottom: 24px;
+    }
+
+        .back-link:hover {
+            color: var(--text-primary);
+            border-color: var(--gold);
+        }
+
+    .not-found-box {
+        text-align: center;
+        padding: 80px 24px;
+        color: var(--text-muted);
+    }
+</style>
+
+<!-- Header -->
+<div class="order-detail-header">
+    <div style="max-width:900px; margin:0 auto; padding:0 24px;">
+        <div style="font-size:22px; font-weight:700; color:var(--text-primary);">
+            📦 تفاصيل الطلب
+        </div>
+        @if (Model.Order != null)
+        {
+            <div style="color:var(--gold); font-size:14px; margin-top:6px;">
+                #@Model.Order.OrderNumber
+            </div>
+        }
+    </div>
+</div>
+
+<div class="order-detail-body">
+
+    <a href="/Profile" class="back-link">← العودة للحساب</a>
+
+    @if (Model.Order == null)
+    {
+        <div class="not-found-box">
+            <div style="font-size:60px; margin-bottom:16px;">📭</div>
+            <h3 style="color:var(--text-secondary);">الطلب غير موجود</h3>
+            <p style="margin-top:8px;">تأكد من رقم الطلب أو ارجع لقائمة طلباتك</p>
+            <a href="/Profile" style="display:inline-block; margin-top:20px; color:var(--gold);">← طلباتي</a>
+        </div>
+    }
+    else
+    {
+        var order = Model.Order;
+
+        <!-- Status Timeline -->
+        <div class="info-card" style="margin-bottom:20px;">
+            <h5>📍 حالة الطلب</h5>
+            <div class="status-timeline">
+                @{
+                    var statuses = new[] {
+                        new { Key = "Pending",   Icon = "🕐", Label = "قيد المراجعة", Int = 0 },
+                        new { Key = "Confirmed", Icon = "✅", Label = "تم التأكيد",    Int = 1 },
+                        new { Key = "Shipped",   Icon = "🚚", Label = "تم الشحن",      Int = 2 },
+                        new { Key = "Delivered", Icon = "🎉", Label = "تم التسليم",    Int = 3 },
+                        };
+
+                    bool isCancelled = order.Status == "Cancelled" || order.StatusInt == 4;
+
+                    int currentIdx = isCancelled ? -1 : Array.FindIndex(statuses, s =>
+                    s.Key == order.Status ||
+                    (order.StatusInt.HasValue && s.Int == order.StatusInt.Value));
+                    if (currentIdx < 0 && !isCancelled) currentIdx = 0;
+                }
+
+                @if (isCancelled)
+                {
+                    <div class="timeline-step cancelled" style="flex:none; margin:0 auto;">
+                        <div class="timeline-dot">❌</div>
+                        <div class="timeline-label">الطلب ملغي</div>
+                    </div>
+                }
+                else
+                {
+                    @for (int i = 0; i < statuses.Length; i++)
+                    {
+                        var s = statuses[i];
+                        string cls = i < currentIdx ? "done" : i == currentIdx ? "active" : "";
+                        <div class="timeline-step @cls">
+                            <div class="timeline-dot">@s.Icon</div>
+                            <div class="timeline-label">@s.Label</div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Products -->
+        <div class="info-card" style="margin-bottom:20px;">
+            <h5>🛍️ المنتجات (@order.Items.Sum(i => i.Quantity) قطعة)</h5>
+            @foreach (var item in order.Items)
+            {
+                <div class="order-item-row">
+                    <img src="/images/placeholder.png" class="order-item-img"
+                         alt="@item.ProductName" />
+                    <div style="flex:1; min-width:0;">
+                        <div class="order-item-name">@item.ProductName</div>
+                        <div class="order-item-meta">
+                            @item.UnitPrice.ToString("N0") ج × @item.Quantity قطعة
+                        </div>
+                    </div>
+                    <div class="order-item-total">
+                        @((item.UnitPrice * item.Quantity).ToString("N0")) ج
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Totals + Info -->
+        <div class="info-grid">
+
+            <!-- Totals -->
+            <div class="info-card">
+                <h5>💰 ملخص المبالغ</h5>
+                <div class="order-totals" style="padding:0; background:none; border:none; margin:0;">
+                    <div class="total-row">
+                        <span>المجموع الفرعي</span>
+                        <span>@order.Total.ToString("N0") ج</span>
+                    </div>
+                    <div class="total-row">
+                        <span>طريقة الدفع</span>
+                        <span>@order.PaymentMethodText</span>
+                    </div>
+                    <div class="total-row">
+                        <span>الإجمالي</span>
+                        <span>@order.Total.ToString("N0") ج</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Info -->
+            <div class="info-card">
+                <h5>🚚 بيانات التوصيل</h5>
+                <div class="info-row">
+                    <span class="info-label">المحافظة</span>
+                    <span>@(order.DeliveryCity ?? "—")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">العنوان</span>
+                    <span style="font-size:13px;">@(order.DeliveryAddress ?? "—")</span>
+                </div>
+                @if (!string.IsNullOrEmpty(order.Notes))
+                {
+                    <div class="info-row">
+                        <span class="info-label">ملاحظات</span>
+                        <span style="font-size:13px;">@order.Notes</span>
+                    </div>
+                }
+                <div class="info-row">
+                    <span class="info-label">تاريخ الطلب</span>
+                    <span style="direction:ltr; font-size:13px;">@order.CreatedAt.ToString("dd/MM/yyyy")</span>
+                </div>
+            </div>
+
+        </div>
+    }
+
+</div>

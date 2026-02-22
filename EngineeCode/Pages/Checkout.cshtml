@@ -1,0 +1,780 @@
+﻿@page
+@model EngineeCode.Pages.CheckoutModel
+@{
+    ViewData["Title"] = "إتمام الطلب";
+    Layout = "_Layout";
+}
+
+<style>
+    .checkout-header {
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border);
+        padding: 36px 0 28px;
+    }
+
+    [data-theme="dark"] .checkout-header {
+        background: linear-gradient(135deg, #0a1628 0%, #0d1f3c 100%);
+    }
+
+    [data-theme="light"] .checkout-header {
+        background: linear-gradient(135deg, #e8f0fe 0%, #f0f4ff 100%);
+    }
+
+    .checkout-header .section-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+    }
+
+    .checkout-body {
+        max-width: 1100px;
+        margin: 32px auto;
+        padding: 0 24px;
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 28px;
+        align-items: start;
+        box-sizing: border-box;
+    }
+
+    .form-section .form-control,
+    .form-section select.form-control,
+    .form-section textarea.form-control {
+        background: var(--bg-base) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 10px;
+        font-family: 'Cairo', sans-serif;
+        font-size: 14px;
+        padding: 12px 14px;
+        outline: none;
+        transition: border-color 0.2s;
+        width: 100%;
+        margin-bottom: 16px;
+        box-sizing: border-box;
+        display: block;
+    }
+
+        .form-section .form-control:focus,
+        .form-section select.form-control:focus,
+        .form-section textarea.form-control:focus {
+            border-color: var(--gold) !important;
+            box-shadow: 0 0 0 3px rgba(245,166,35,.1);
+        }
+
+        .form-section .form-control::placeholder {
+            color: var(--text-muted);
+        }
+
+    .form-section .form-label {
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+    }
+
+        .summary-row.total {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+
+            .summary-row.total span:last-child {
+                color: var(--gold);
+            }
+
+    .order-summary-compact {
+        position: sticky;
+        top: 88px;
+    }
+
+    /* Payment Modal */
+    .payment-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.85);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        backdrop-filter: blur(6px);
+    }
+
+        .payment-modal-overlay.show {
+            display: flex;
+            animation: fadeIn .3s ease;
+        }
+
+    .payment-modal-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 460px;
+        padding: 36px 32px;
+        position: relative;
+        animation: slideUp .35s ease;
+        text-align: center;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .payment-modal-close {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        background: var(--bg-base);
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: all .2s;
+    }
+
+        .payment-modal-close:hover {
+            background: var(--red);
+            color: #fff;
+            border-color: var(--red);
+        }
+
+    .payment-modal-icon {
+        font-size: 52px;
+        margin-bottom: 12px;
+    }
+
+    .payment-modal-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+    }
+
+    .payment-modal-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+    }
+
+    .payment-amount-box {
+        background: var(--gold-dim);
+        border: 1px solid rgba(245,166,35,.3);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .payment-amount-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+
+    .payment-amount-value {
+        font-size: 28px;
+        font-weight: 900;
+        color: var(--gold);
+    }
+
+    .transfer-info-box {
+        background: var(--bg-base);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 20px;
+        text-align: right;
+    }
+
+    .transfer-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+    }
+
+        .transfer-info-row:last-child {
+            border: none;
+        }
+
+    .transfer-info-label {
+        color: var(--text-muted);
+        font-size: 13px;
+    }
+
+    .transfer-info-value {
+        font-weight: 700;
+        color: var(--text-primary);
+        direction: ltr;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .copy-btn {
+        background: rgba(33,150,243,.1);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 3px 8px;
+        font-size: 11px;
+        color: var(--blue-light);
+        cursor: pointer;
+        transition: all .2s;
+    }
+
+        .copy-btn:hover {
+            background: var(--blue-glow);
+            color: #fff;
+        }
+
+    .payment-steps {
+        text-align: right;
+        margin-bottom: 24px;
+    }
+
+    .payment-step-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 0;
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    .step-num {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--blue-bright), var(--blue-glow));
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .btn-confirm-payment {
+        width: 100%;
+        background: linear-gradient(135deg, #26a69a, #00897b);
+        border: none;
+        border-radius: 12px;
+        padding: 15px;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 700;
+        font-family: 'Cairo', sans-serif;
+        cursor: pointer;
+        transition: opacity .2s;
+    }
+
+        .btn-confirm-payment:hover {
+            opacity: .9;
+        }
+
+        .btn-confirm-payment:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+    .payment-note {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 12px;
+        line-height: 1.6;
+    }
+
+    @@keyframes slideUp {
+        from {
+            transform: translateY(30px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@media (max-width: 900px) {
+        .checkout-body {
+            grid-template-columns: 1fr;
+            padding: 0 16px;
+            margin: 20px auto;
+            gap: 20px;
+        }
+
+        .order-summary-compact {
+            position: static;
+        }
+
+        .checkout-summary-col {
+            order: -1;
+        }
+
+        .payment-modal-box {
+            padding: 28px 18px;
+        }
+    }
+
+    .payment-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .payment-opt {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 16px 12px;
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        cursor: pointer;
+        transition: all .25s;
+        background: var(--bg-base);
+        text-align: center;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+        .payment-opt img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .payment-opt span {
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+
+        .payment-opt:hover {
+            border-color: var(--blue-glow);
+            background: rgba(33,150,243,.06);
+            color: var(--text-primary);
+        }
+
+        .payment-opt.selected {
+            border-color: var(--blue-glow);
+            background: rgba(33,150,243,.12);
+            color: var(--blue-glow);
+            box-shadow: 0 0 0 3px rgba(33,150,243,.15);
+        }
+
+    /* ── Toast ── */
+    .checkout-toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: #e53935;
+        color: #fff;
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 700;
+        font-family: 'Cairo', sans-serif;
+        z-index: 99999;
+        opacity: 0;
+        transition: all .35s ease;
+        box-shadow: 0 6px 24px rgba(0,0,0,.3);
+        white-space: nowrap;
+    }
+
+        .checkout-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+    @@media (max-width: 600px) {
+        .payment-options {
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .payment-opt {
+            padding: 12px 8px;
+        }
+
+            .payment-opt img {
+                height: 32px;
+            }
+    }
+    /* ── Light mode fix for checkout ── */
+    [data-theme="light"] .form-section .form-control,
+    [data-theme="light"] .form-section select.form-control,
+    [data-theme="light"] .form-section textarea.form-control {
+        background: #ffffff !important;
+        color: #1a1a2e !important;
+        border-color: #d0d0d0 !important;
+    }
+
+    [data-theme="light"] .checkout-body {
+        background: transparent;
+    }
+
+    [data-theme="light"] .payment-opt {
+        background: #f8f9fa;
+        border-color: #d0d0d0;
+        color: #333;
+    }
+
+        [data-theme="light"] .payment-opt.selected {
+            background: rgba(33,150,243,.1);
+            border-color: var(--blue-glow);
+            color: var(--blue-glow);
+        }
+
+    [data-theme="light"] .order-summary-compact {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 16px;
+        padding: 20px;
+    }
+
+    [data-theme="light"] .transfer-info-box {
+        background: #f0f0f0;
+    }
+
+    [data-theme="light"] .payment-modal-box {
+        background: #ffffff;
+    }
+</style>
+
+<div class="checkout-header">
+    <div style="max-width:1100px; margin:0 auto; padding:0 24px;">
+        <div class="section-title">🛍️ إتمام الطلب</div>
+        <div class="step-bar">
+            <div class="step-item done"><div class="step-circle">✓</div><span>السلة</span></div>
+            <div class="step-item active"><div class="step-circle">2</div><span>التفاصيل</span></div>
+            <div class="step-item"><div class="step-circle">3</div><span>تأكيد</span></div>
+        </div>
+    </div>
+</div>
+<div class="checkout-toast" id="checkoutToast"></div>
+<div class="checkout-body">
+    <div class="checkout-form-col">
+        <div class="form-section">
+            <h5>🚚 بيانات التوصيل</h5>
+            <label class="form-label">المدينة / المحافظة *</label>
+            <select class="form-control" id="cityInput">
+                <option value="">اختر المحافظة</option>
+                @foreach (var city in Model.Cities)
+                {
+                    <option value="@city">@city</option>
+                }
+            </select>
+            <label class="form-label">العنوان بالتفصيل *</label>
+            <input type="text" class="form-control" id="addressInput" placeholder="الشارع، المنطقة، رقم المبنى" />
+            <label class="form-label">ملاحظات إضافية</label>
+            <textarea class="form-control" id="notesInput" rows="3" placeholder="أي تعليمات للمندوب..."></textarea>
+        </div>
+        <div class="form-section">
+            <h5>💳 طريقة الدفع</h5>
+            <div class="payment-options">
+                <div class="payment-opt selected" onclick="selectPayment(this,5)" data-val="5">
+                    <img src="~/images/cash.png" style="height:32px;object-fit:contain;" />
+                    <span>الدفع عند الاستلام</span>
+                </div>
+                <div class="payment-opt" onclick="selectPayment(this,1)" data-val="1">
+                    <img src="~/images/vc.png" style="height:32px;object-fit:contain;" />
+                    <span>فودافون كاش</span>
+                </div>
+                <div class="payment-opt" onclick="selectPayment(this,4)" data-val="4">
+                    <img src="~/images/visa.png" style="height:32px;object-fit:contain;" />
+                    <span>فيزا</span>
+                </div>
+                <div class="payment-opt" onclick="selectPayment(this,6)" data-val="6">
+                    <img src="~/images/paypal.png" style="height:32px;object-fit:contain;" />
+                    <span>PayPal</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="checkout-summary-col">
+        <div class="order-summary-compact">
+            <h5>📦 ملخص طلبك</h5>
+            <div id="miniItems"></div>
+            <div style="margin-top:15px; border-top:1px solid var(--border); padding-top:15px;">
+                <div class="summary-row"><span>المجموع الفرعي</span><span><span id="subTotal">0</span> ج</span></div>
+                <div class="summary-row"><span>التوصيل</span><span style="color:var(--green);">عند الشحن</span></div>
+                <div class="summary-row total"><span>الإجمالي</span><span><span id="totalAmount">0</span> ج</span></div>
+            </div>
+            <button class="btn-place-order" id="placeOrderBtn" onclick="placeOrder()">✅ تأكيد الطلب</button>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="payment-modal-overlay" id="paymentModal">
+    <div class="payment-modal-box">
+        <button class="payment-modal-close" onclick="closePaymentModal()">✕</button>
+        <div class="payment-modal-icon" id="modalIcon">📱</div>
+        <div class="payment-modal-title" id="modalTitle"></div>
+        <div class="payment-modal-subtitle" id="modalSubtitle"></div>
+        <div class="payment-amount-box">
+            <div class="payment-amount-label">المبلغ المطلوب تحويله</div>
+            <div class="payment-amount-value"><span id="modalAmount">0</span> ج</div>
+        </div>
+        <div class="transfer-info-box">
+            <div class="transfer-info-row">
+                <span class="transfer-info-label" id="modalAccountLabel">رقم الهاتف</span>
+                <span class="transfer-info-value">
+                    <span id="modalAccountNumber"></span>
+                    <button class="copy-btn" onclick="copyNumber()">نسخ</button>
+                </span>
+            </div>
+            <div class="transfer-info-row">
+                <span class="transfer-info-label">الاسم</span>
+                <span class="transfer-info-value">EngineeCode</span>
+            </div>
+        </div>
+        <div class="payment-steps">
+            <div class="payment-step-item"><div class="step-num">1</div><span id="step1Text"></span></div>
+            <div class="payment-step-item"><div class="step-num">2</div><span>حوّل المبلغ للحساب أعلاه بالضبط</span></div>
+            <div class="payment-step-item"><div class="step-num">3</div><span>اضغط "تأكيد الدفع" وسنشحن طلبك</span></div>
+        </div>
+        <button class="btn-confirm-payment" id="confirmPayBtn" onclick="confirmPayment()">
+            ✅ لقيت الفلوس — إتمام الطلب
+        </button>
+        <div class="payment-note">⚠️ سيتم مراجعة الدفع قبل الشحن. إذا واجهت مشكلة تواصل معنا عبر واتساب.</div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="success-overlay" id="successOverlay">
+    <div class="success-box">
+        <div class="success-icon">🎉</div>
+        <h3 style="color:#75b798; margin-bottom:10px;">تم استلام طلبك!</h3>
+        <p style="color:var(--text-muted); font-size:14px;">
+            رقم طلبك: <strong id="orderNumDisplay" style="color:var(--gold)"></strong>
+        </p>
+        <p style="color:var(--text-muted); font-size:13px;" id="successNote">سيتم التواصل معك لتأكيد الطلب قريباً</p>
+        <button onclick="window.location.href='/Profile'"
+                style="margin-top:20px;background:var(--gold);border:none;border-radius:10px;
+                       padding:12px 30px;color:#000;font-weight:700;cursor:pointer;font-size:14px;">
+            متابعة طلباتي
+        </button>
+    </div>
+</div>
+
+<script>
+    
+    let cart = [], selectedPayment = 5;
+
+    const PAYMENT_INFO = {
+        1: {
+            icon: '📱',
+            title: 'ادفع عن طريق فودافون كاش',
+            subtitle: 'حوّل المبلغ للرقم التالي',
+            accountLabel: 'رقم فودافون كاش',
+            account: '01004753611',
+            step1: 'افتح تطبيق فودافون كاش واختر تحويل'
+        },
+        2: {
+            icon: '🏪',
+            title: 'ادفع عن طريق فوري',
+            subtitle: 'روح لأقرب نقطة فوري وادفع بالكود',
+            accountLabel: 'كود فوري',
+            account: '1234567',
+            step1: 'روح لأقرب ماكينة أو نقطة فوري'
+        },
+        3: {
+            icon: '💸',
+            title: 'ادفع عن طريق إنستاباي',
+            subtitle: 'حوّل المبلغ عن طريق إنستاباي',
+            accountLabel: 'رقم الهاتف',
+            account: '01004753611',
+            step1: 'افتح تطبيق البنك واختر إنستاباي'
+        }
+    };
+
+       function loadCart() {
+        try { cart = JSON.parse(localStorage.getItem('ec_cart') || '[]'); } catch { cart = []; }
+    }
+
+    function renderSummary() {
+        loadCart();
+        const container = document.getElementById('miniItems');
+        container.innerHTML = '';
+        let sub = 0;
+        cart.forEach(item => {
+            sub += item.price * item.qty;
+            const div = document.createElement('div');
+            div.className = 'mini-item';
+            div.innerHTML = `<span>${item.name} × ${item.qty}</span>
+                             <span class="mini-item-price">${(item.price * item.qty).toLocaleString()} ج</span>`;
+            container.appendChild(div);
+        });
+        document.getElementById('subTotal').textContent    = sub.toLocaleString();
+        document.getElementById('totalAmount').textContent = sub.toLocaleString();
+    }
+
+    function selectPayment(el, val) {
+        document.querySelectorAll('.payment-opt').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedPayment = val;
+    }
+
+    function updateCartBadge() {
+        ['cartCount', 'cartCountMobile'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = '0'; el.style.display = 'none'; }
+        });
+    }
+
+    function openPaymentModal() {
+        const info  = PAYMENT_INFO[selectedPayment];
+        const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+        document.getElementById('modalIcon').textContent          = info.icon;
+        document.getElementById('modalTitle').textContent         = info.title;
+        document.getElementById('modalSubtitle').textContent      = info.subtitle;
+        document.getElementById('modalAccountLabel').textContent  = info.accountLabel;
+        document.getElementById('modalAccountNumber').textContent = info.account;
+        document.getElementById('step1Text').textContent          = info.step1;
+        document.getElementById('modalAmount').textContent        = total.toLocaleString();
+        const btn = document.getElementById('confirmPayBtn');
+        btn.disabled    = false;
+        btn.textContent = '✅ لقيت الفلوس — إتمام الطلب';
+        document.getElementById('paymentModal').classList.add('show');
+    }
+
+    function closePaymentModal() {
+        document.getElementById('paymentModal').classList.remove('show');
+        const btn = document.getElementById('placeOrderBtn');
+        btn.disabled    = false;
+        btn.textContent = '✅ تأكيد الطلب';
+    }
+
+    function copyNumber() {
+        const num = document.getElementById('modalAccountNumber').textContent;
+        navigator.clipboard.writeText(num).then(() => {
+            const btn = event.target;
+            btn.textContent = 'تم ✓';
+            btn.style.background = 'var(--green)';
+            btn.style.color = '#fff';
+            setTimeout(() => { btn.textContent = 'نسخ'; btn.style.background = ''; btn.style.color = ''; }, 2000);
+        });
+    }
+
+    async function submitOrder() {
+        const city    = document.getElementById('cityInput').value;
+        const address = document.getElementById('addressInput').value.trim();
+        const notes   = document.getElementById('notesInput').value.trim();
+        try {
+            const res  = await fetch('/api/proxy/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    paymentMethod:   selectedPayment,
+                    deliveryCity:    city,
+                    deliveryAddress: address,
+                    notes,
+                    items: cart.map(i => ({ productId: i.id, quantity: i.qty, unitPrice: i.price }))
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                localStorage.removeItem('ec_cart');
+                updateCartBadge();
+                document.getElementById('orderNumDisplay').textContent = data.orderNumber || '';
+                if (selectedPayment !== 5) {
+                    document.getElementById('successNote').textContent = 'سيتم التحقق من الدفع وشحن طلبك قريباً 📦';
+                }
+                document.getElementById('paymentModal').classList.remove('show');
+                document.getElementById('successOverlay').classList.add('show');
+                return true;
+            } else {
+                alert(data.message || 'حدث خطأ');
+                return false;
+            }
+        } catch {
+            alert('فشل الاتصال بالسيرفر');
+            return false;
+        }
+    }
+
+       function showToast(msg) {
+        const t = document.getElementById('checkoutToast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    async function placeOrder() {
+        loadCart();
+        const city    = document.getElementById('cityInput').value;
+        const address = document.getElementById('addressInput').value.trim();
+
+        // ← Toast بدل alert
+        if (!city)        { showToast('⚠️ من فضلك اختر المحافظة أولاً'); return; }
+        if (!address)     { showToast('⚠️ من فضلك أدخل العنوان بالتفصيل'); return; }
+        if (!cart.length) { showToast('🛒 سلتك فاضية!'); return; }
+
+        const btn = document.getElementById('placeOrderBtn');
+        btn.disabled    = true;
+        btn.textContent = 'جاري المعالجة...';
+
+        if (selectedPayment === 5) {
+            const ok = await submitOrder();
+            if (!ok) { btn.disabled = false; btn.textContent = '✅ تأكيد الطلب'; }
+        } else {
+            openPaymentModal();
+        }
+    }
+
+    async function confirmPayment() {
+        const btn = document.getElementById('confirmPayBtn');
+        btn.disabled    = true;
+        btn.textContent = 'جاري إتمام الطلب...';
+        const ok = await submitOrder();
+        if (!ok) {
+            btn.disabled    = false;
+            btn.textContent = '✅ لقيت الفلوس — إتمام الطلب';
+        }
+    }
+
+       // ✅ بعد — بينتظر كل الـ scripts تتحمل
+    document.addEventListener('DOMContentLoaded', function() {
+        try { cart = JSON.parse(localStorage.getItem('ec_cart') || '[]'); } catch { cart = []; }
+        if (!cart.length) window.location.href = '/Cart';
+        else renderSummary();
+    });
+</script>

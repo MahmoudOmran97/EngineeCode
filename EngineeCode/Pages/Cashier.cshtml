@@ -1,0 +1,68 @@
+﻿@page
+@model CashierModel
+@{
+    ViewData["Title"] = "نظام الكاشير";
+}
+
+<div class="section-wrap" style="padding-top:100px;">
+    <div class="cashier-split">
+
+        <!-- Left: Text Content -->
+        <div class="cashier-text reveal">
+            <div class="section-tag">نظام نقطة البيع</div>
+            <h2 class="cashier-h">سيستم <em>كاشير</em><br>احترافي لأعمالك</h2>
+            <p class="cashier-p">
+                نطور لك نظام POS متكامل بالـ ASP.NET + SQL Server —
+                سريع وموثوق وسهل الاستخدام. مدير المخزون، الفواتير، التقارير، والدفع الإلكتروني كله في مكان واحد.
+            </p>
+            <ul class="feat-list">
+                <li><div class="ck">✓</div> إدارة المنتجات والمخزون لحظياً</li>
+                <li><div class="ck">✓</div> فواتير وإيصالات احترافية بالطابعة</li>
+                <li><div class="ck">✓</div> تقارير مبيعات يومية وشهرية</li>
+                <li><div class="ck">✓</div> دعم الباركود وقارئات الكروت</li>
+                <li><div class="ck">✓</div> دعم أكثر من فرع وأكثر من كاشير</li>
+                <li><div class="ck">✓</div> ربط دفع إلكتروني (Fawry / Vodafone / InstaPay)</li>
+                <li><div class="ck">✓</div> نسخ احتياطي تلقائي للداتا</li>
+                <li><div class="ck">✓</div> Dashboard بالإحصائيات والرسوم البيانية</li>
+            </ul>
+            <button class="btn-hero primary" onclick="window.open('https://wa.me/201118324397?text=أريد الاستفسار عن نظام الكاشير')">
+                💬 استفسر عن النظام الآن
+            </button>
+        </div>
+
+        <!-- Right: POS Terminal Mockup -->
+        <div class="pos-terminal reveal">
+            <div class="pos-screen">
+                <div class="pos-bar">
+                    <div class="dot-r"></div>
+                    <div class="dot-y"></div>
+                    <div class="dot-g"></div>
+                    <div class="pos-title">EngineeCode POS v2.0</div>
+                </div>
+                <div class="pos-row"><div class="n">ماوس ZERO ZR200</div><div class="v">85 EGP</div></div>
+                <div class="pos-row"><div class="n">كيبورد ZERO ZR-2080</div><div class="v">270 EGP</div></div>
+                <div class="pos-row"><div class="n">سماعة SADES G50</div><div class="v">599 EGP</div></div>
+                <div class="pos-row"><div class="n">خصم رمضان</div><div class="v" style="color:var(--red)">- 50 EGP</div></div>
+                <div class="pos-total">
+                    <div class="n">الإجمالي</div>
+                    <div class="v">904 EGP</div>
+                </div>
+            </div>
+            <div class="pos-feats">
+                <div class="pf">📊 تقارير لحظية</div>
+                <div class="pf">📦 إدارة مخزون</div>
+                <div class="pf">🖨️ طباعة فواتير</div>
+                <div class="pf">👥 إدارة عملاء</div>
+                <div class="pf">💳 دفع إلكتروني</div>
+                <div class="pf">🔒 نسخ احتياطي</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', setupReveal);
+    </script>
+}

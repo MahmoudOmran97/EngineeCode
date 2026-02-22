@@ -1,0 +1,51 @@
+﻿@page
+@model ProductsModel
+@{
+    ViewData["Title"] = "المنتجات";
+}
+
+<div class="section-wrap" style="padding-top:100px;">
+    <div class="section-head reveal">
+        <div class="section-tag">متجر EngineeCode</div>
+        <h2 class="section-h">كل <em>منتجاتنا</em></h2>
+        <p class="section-p">عروض حصرية على مستلزمات الكمبيوتر والكاميرات</p>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar" id="filterBar">
+        <button class="flt active" data-cat="all">الكل</button>
+        <button class="flt" data-cat="mouse">🖱️ ماوس</button>
+        <button class="flt" data-cat="keyboard">⌨️ كيبورد</button>
+        <button class="flt" data-cat="headphone">🎧 سماعات</button>
+    </div>
+
+    <!-- Search + Sort Toolbar -->
+    <div class="toolbar">
+        <div class="search-box">
+            <span>🔍</span>
+            <input type="text" id="searchInput" placeholder="ابحث عن منتج...">
+        </div>
+        <select class="sort-sel" id="sortSel">
+            <option value="default">ترتيب افتراضي</option>
+            <option value="price-asc">السعر: من الأقل</option>
+            <option value="price-desc">السعر: من الأعلى</option>
+            <option value="rating">الأعلى تقييماً</option>
+            <option value="sales">الأكثر مبيعاً</option>
+        </select>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-grid" id="allProductsGrid">
+        <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-muted);">
+            ⏳ جاري تحميل المنتجات...
+        </div>
+    </div>
+</div>
+
+<!-- PRODUCT DETAIL MODAL -->
+<div class="product-modal-overlay" id="productModal">
+    <div class="product-modal-box">
+        <button class="modal-close" onclick="closeProductModal()">✕</button>
+        <div id="modalContent"></div>
+    </div>
+</div>

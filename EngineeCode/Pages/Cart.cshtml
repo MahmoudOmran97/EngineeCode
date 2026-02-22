@@ -1,0 +1,225 @@
+﻿@page
+@model EngineeCode.Pages.CartModel
+@{
+    ViewData["Title"] = "سلة التسوق";
+    Layout = "_Layout";
+}
+
+<style>
+    /* ===== Cart Page ===== */
+    .cart-page-header {
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border);
+        padding: 36px 0 28px;
+    }
+
+    [data-theme="dark"] .cart-page-header {
+        background: linear-gradient(135deg, #0a1628 0%, #0d1f3c 100%);
+    }
+
+    [data-theme="light"] .cart-page-header {
+        background: linear-gradient(135deg, #e8f0fe 0%, #f0f4ff 100%);
+    }
+
+    /* Override cart-layout للـ responsive */
+    .cart-layout {
+        max-width: 1100px;
+        margin: 32px auto;
+        padding: 0 24px;
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        gap: 28px;
+        align-items: start;
+    }
+
+    /* على الموبايل */
+    @@media (max-width: 768px) {
+        .cart-layout
+
+    {
+        grid-template-columns: 1fr;
+        padding: 0 16px;
+        margin: 20px auto;
+    }
+    /* خلّي الـ summary يجي فوق على الموبايل */
+    .cart-summary-box {
+        order: -1;
+        position: static !important;
+    }
+
+    .cart-item-img {
+        width: 65px !important;
+        height: 65px !important;
+    }
+
+    .cart-item-name {
+        font-size: 13px !important;
+    }
+
+    }
+
+    @@media (max-width: 480px) {
+        .cart-item-card
+
+    {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .cart-item-controls {
+        flex-direction: row !important;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    }
+</style>
+
+<!-- Header -->
+<div class="cart-page-header">
+    <div style="max-width:1100px; margin:0 auto; padding:0 24px;">
+        <div style="font-size:24px; font-weight:700; color:var(--text-primary);">🛒 سلة التسوق</div>
+        <div id="cartHeaderSub" style="color:var(--text-muted); font-size:14px; margin-top:4px;">جاري التحميل...</div>
+    </div>
+</div>
+
+<!-- Cart Layout -->
+<div class="cart-layout">
+
+    <!-- Items Column -->
+    <div>
+        <div class="empty-cart-box" id="emptyCartBox">
+            <span class="ec-icon">🛒</span>
+            <h3>سلتك فارغة</h3>
+            <p>أضف منتجات من متجرنا وابدأ التسوق</p>
+            <a href="/Products">تصفح المنتجات ←</a>
+        </div>
+        <div id="cartItemsWrap"></div>
+    </div>
+
+    <!-- Summary Column -->
+    <div class="cart-summary-box">
+        <h4>📦 ملخص الطلب</h4>
+        <div class="sum-row">
+            <span>المجموع الفرعي</span>
+            <span><span id="sumSubtotal">0</span> ج</span>
+        </div>
+        <div class="sum-row">
+            <span>رسوم التوصيل</span>
+            <span style="color:var(--green);">تُحدد عند الشحن</span>
+        </div>
+        <div class="sum-row total">
+            <span>الإجمالي</span>
+            <span><span id="sumTotal">0</span> ج</span>
+        </div>
+        <div class="delivery-note-box">🚚 توصيل لجميع المحافظات</div>
+        <button class="btn-checkout-main" id="checkoutMainBtn" disabled>إتمام الطلب ←</button>
+        <a href="/Products" class="btn-continue-shop">متابعة التسوق</a>
+    </div>
+
+</div>
+
+<script>
+    (function () {
+        const CART_KEY = 'ec_cart';
+
+        function getCart() {
+            try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; }
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem(CART_KEY, JSON.stringify(cart));
+            var total = cart.reduce(function(s, i) { return s + i.qty; }, 0);
+            var badge  = document.getElementById('cartCount');
+            var badgeM = document.getElementById('cartCountMobile');
+            if (badge)  { badge.textContent = total; badge.style.display = total > 0 ? 'flex' : 'none'; }
+            if (badgeM) { badgeM.textContent = total; }
+        }
+
+        function imgSrc(item) {
+            var img = item.imagePath || item.image || item.img || item.ImagePath || '';
+            if (!img) return '/images/placeholder.png';
+            if (img.startsWith('http') || img.startsWith('/')) return img;
+            return '/images/' + img;
+        }
+
+        function render() {
+            var cart     = getCart();
+            var wrap     = document.getElementById('cartItemsWrap');
+            var empty    = document.getElementById('emptyCartBox');
+            var checkBtn = document.getElementById('checkoutMainBtn');
+            var sub      = document.getElementById('cartHeaderSub');
+
+            if (cart.length === 0) {
+                wrap.innerHTML          = '';
+                empty.style.display     = 'block';
+                checkBtn.disabled       = true;
+                sub.textContent         = 'سلتك فارغة';
+                document.getElementById('sumSubtotal').textContent = '0';
+                document.getElementById('sumTotal').textContent    = '0';
+                return;
+            }
+
+            empty.style.display = 'none';
+            checkBtn.disabled   = false;
+            sub.textContent     = cart.reduce(function(s,i){ return s+i.qty; }, 0) + ' منتج في سلتك';
+
+            var html = '';
+            cart.forEach(function(item, idx) {
+                var lineTotal = (item.price * item.qty).toLocaleString('ar-EG');
+                html +=
+                    '<div class="cart-item-card">' +
+                      '<img src="' + imgSrc(item) + '" class="cart-item-img" ' +
+                           'onerror="this.src=\'/images/placeholder.png\'" alt="' + item.name + '">' +
+                      '<div class="cart-item-body">' +
+                        '<div class="cart-item-name">' + item.name + '</div>' +
+                        '<div class="cart-item-sub">' + (item.subName || '') + '</div>' +
+                        '<div class="cart-item-price-line">' + item.price.toLocaleString('ar-EG') + ' ج × ' + item.qty + '</div>' +
+                        '<div class="cart-item-total-price">' + lineTotal + ' ج</div>' +
+                      '</div>' +
+                      '<div class="cart-item-controls">' +
+                        '<div class="qty-box">' +
+                          '<button class="qty-dec" data-idx="' + idx + '">−</button>' +
+                          '<span class="qty-num">' + item.qty + '</span>' +
+                          '<button class="qty-inc" data-idx="' + idx + '">+</button>' +
+                        '</div>' +
+                        '<button class="del-btn" data-idx="' + idx + '" title="حذف">🗑️</button>' +
+                      '</div>' +
+                    '</div>';
+            });
+            wrap.innerHTML = html;
+
+            var subtotal = cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
+            document.getElementById('sumSubtotal').textContent = subtotal.toLocaleString('ar-EG');
+            document.getElementById('sumTotal').textContent    = subtotal.toLocaleString('ar-EG');
+        }
+
+        document.getElementById('cartItemsWrap').addEventListener('click', function(e) {
+            var btn = e.target.closest('[data-idx]');
+            if (!btn) return;
+            var idx  = parseInt(btn.getAttribute('data-idx'));
+            var cart = getCart();
+            if (!cart[idx]) return;
+
+            if (btn.classList.contains('qty-inc')) {
+                var max = cart[idx].stock || 999;
+                if (cart[idx].qty < max) cart[idx].qty++;
+                else return;
+            } else if (btn.classList.contains('qty-dec')) {
+                if (cart[idx].qty > 1) cart[idx].qty--;
+                else cart.splice(idx, 1);
+            } else if (btn.classList.contains('del-btn')) {
+                cart.splice(idx, 1);
+            }
+
+            saveCart(cart);
+            render();
+        });
+
+        document.getElementById('checkoutMainBtn').addEventListener('click', function() {
+            if (getCart().length > 0) window.location.href = '/Checkout';
+        });
+
+        render();
+    })();
+</script>

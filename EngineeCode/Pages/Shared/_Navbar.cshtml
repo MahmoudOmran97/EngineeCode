@@ -1,0 +1,140 @@
+﻿@{
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "/Index";
+    var customerEmail = Context.Session.GetString("CustomerEmail");
+    var customerName = Context.Session.GetString("CustomerName");
+    var isLoggedIn = !string.IsNullOrEmpty(customerEmail);
+    var displayName = !string.IsNullOrEmpty(customerName) ? customerName : customerEmail;
+    var initial = (displayName ?? "؟").Substring(0, 1).ToUpper();
+}
+
+<header class="navbar">
+    <div class="nav-inner">
+        <a class="logo" asp-page="/Index" style="gap:8px; align-items:center;">
+            <img src="~/images/logo.png" alt="EngineeCode"
+                 style="width:80px; height:80px; object-fit:contain; border-radius:3px; display:block;" />
+            <div>
+                <div class="logo-name">Enginee<em>Code</em></div>
+                <div class="logo-tagline">لمستلزمات الكمبيوتر والكاميرات</div>
+            </div>
+        </a>
+
+        <nav class="main-nav">
+            <a class="nav-link @(currentPage == "/Index" ? "active" : "")" asp-page="/Index">الرئيسية</a>
+            <a class="nav-link @(currentPage == "/Products" ? "active" : "")" asp-page="/Products">المنتجات</a>
+            <a class="nav-link @(currentPage == "/Services" ? "active" : "")" asp-page="/Services">الخدمات</a>
+            <a class="nav-link @(currentPage == "/Cashier" ? "active" : "")" asp-page="/Cashier">نظام الكاشير</a>
+            <a class="nav-link @(currentPage == "/About" ? "active" : "")" asp-page="/About">من نحن</a>
+            <a class="nav-link @(currentPage == "/Contact" ? "active" : "")" asp-page="/Contact">تواصل معنا</a>
+        </nav>
+
+        <div class="nav-actions">
+            <!-- زرار السلة -->
+            <a class="cart-btn" href="/Cart" title="العربة">
+                🛒
+                <span class="cart-count" id="cartCount" style="display:none;">0</span>
+            </a>
+
+            @if (isLoggedIn)
+            {
+                <!-- العميل مسجّل دخول -->
+                <div class="customer-menu" id="customerMenu">
+                    <button class="customer-btn" onclick="toggleCustomerMenu()">
+                        <span style="width:30px; height:30px; background:linear-gradient(135deg,#c9a84c,#7a5c1e);
+                                         border-radius:50%; display:inline-flex; align-items:center;
+                                         justify-content:center; font-size:13px; font-weight:700; color:#000;">
+                            @initial
+                        </span>
+                        @(displayName?.Split(' ')[0])
+                        <span style="font-size:10px;">▾</span>
+                    </button>
+                    <div class="customer-dropdown" id="customerDropdown">
+                        <a href="/Profile" style="display:block; padding:12px 16px; color:inherit;
+                                                       text-decoration:none; font-size:14px; border-bottom:1px solid #2a2a2a;">
+                            👤 حسابي وطلباتي
+                        </a>
+                        <a href="/Cart" style="display:block; padding:12px 16px; color:inherit;
+                                                   text-decoration:none; font-size:14px; border-bottom:1px solid #2a2a2a;">
+                            🛒 سلة التسوق
+                        </a>
+                        <button onclick="logout()" style="display:block; width:100%; padding:12px 16px;
+                                    background:none; border:none; color:#ea868f; font-size:14px;
+                                    font-family:inherit; cursor:pointer; text-align:right;">
+                            🚪 تسجيل الخروج
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- غير مسجّل -->
+                <button class="nav-cta" onclick="window.location.href='/Login'">
+                    👤 تسجيل الدخول
+                </button>
+            }
+        </div>
+
+        <button class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع">
+            <span class="theme-icon sun">☀️</span>
+            <span class="theme-icon moon">🌙</span>
+        </button>
+        <div class="hamburger" onclick="toggleMobile()">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+</header>
+
+<!-- Mobile Nav -->
+<div class="mobile-nav" id="mobileNav">
+    <a class="nav-link" asp-page="/Index">🏠 الرئيسية</a>
+    <a class="nav-link" asp-page="/Products">🛒 المنتجات</a>
+    <a class="nav-link" asp-page="/Services">⚙️ الخدمات</a>
+    <a class="nav-link" asp-page="/Cashier">🖥️ نظام الكاشير</a>
+    <a class="nav-link" asp-page="/About">ℹ️ من نحن</a>
+    <a class="nav-link" asp-page="/Contact">📞 تواصل معنا</a>
+    <a class="nav-link" href="/Cart">🛒 العربة (<span id="cartCountMobile">0</span>)</a>
+    @if (isLoggedIn)
+    {
+        <a class="nav-link" asp-page="/Profile">👤 حسابي</a>
+        <button class="nav-link" onclick="logout()"
+                style="background:none; border:none; color:#ea868f; font-family:inherit; cursor:pointer; text-align:right; width:100%;">
+            🚪 تسجيل الخروج
+        </button>
+    }
+    else
+    {
+        <a class="nav-link" asp-page="/Login">👤 تسجيل الدخول</a>
+    }
+</div>
+
+<script>
+    // Cart count من localStorage
+    (function() {
+        var cart = JSON.parse(localStorage.getItem('ec_cart') || '[]');
+        var count = cart.reduce(function(s, i) { return s + i.qty; }, 0);
+        var el = document.getElementById('cartCount');
+        var elM = document.getElementById('cartCountMobile');
+        if (count > 0 && el) { el.style.display = 'flex'; el.textContent = count; }
+        if (elM) { elM.textContent = count; }
+    })();
+
+    // Customer menu toggle
+    function toggleCustomerMenu() {
+        var dd = document.getElementById('customerDropdown');
+        if (dd) { dd.classList.toggle('open'); }
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+        var menu = document.getElementById('customerMenu');
+        if (menu && !menu.contains(e.target)) {
+            var dd = document.getElementById('customerDropdown');
+            if (dd) { dd.classList.remove('open'); }
+        }
+    });
+
+    // Logout
+    function logout() {
+        fetch('/api/proxy/logout', { method: 'POST' })
+            .then(function() { window.location.href = '/'; });
+    }
+</script>
