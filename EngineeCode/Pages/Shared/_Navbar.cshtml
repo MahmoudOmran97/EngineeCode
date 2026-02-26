@@ -1,4 +1,5 @@
 ﻿@{
+    Layout = null;
     var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "/Index";
     var customerEmail = Context.Session.GetString("CustomerEmail");
     var customerName = Context.Session.GetString("CustomerName");
@@ -36,29 +37,28 @@
 
             @if (isLoggedIn)
             {
-                <!-- العميل مسجّل دخول -->
                 <div class="customer-menu" id="customerMenu">
-                    <button class="customer-btn" onclick="toggleCustomerMenu()">
-                        <span style="width:30px; height:30px; background:linear-gradient(135deg,#c9a84c,#7a5c1e);
-                                         border-radius:50%; display:inline-flex; align-items:center;
-                                         justify-content:center; font-size:13px; font-weight:700; color:#000;">
-                            @initial
-                        </span>
-                        @(displayName?.Split(' ')[0])
-                        <span style="font-size:10px;">▾</span>
-                    </button>
+                   <button class="customer-btn" onclick="toggleCustomerMenu()">
+    <span style="width:30px; height:30px; background:linear-gradient(135deg,#c9a84c,#7a5c1e);
+                 border-radius:50%; display:inline-flex; align-items:center;
+                 justify-content:center; font-size:13px; font-weight:700; color:#000;">
+        @initial
+    </span>
+    <span class="nav-username">@(displayName?.Split(' ')[0])</span>
+    <span class="nav-arrow" style="font-size:10px;">▾</span>
+</button>
                     <div class="customer-dropdown" id="customerDropdown">
                         <a href="/Profile" style="display:block; padding:12px 16px; color:inherit;
-                                                       text-decoration:none; font-size:14px; border-bottom:1px solid #2a2a2a;">
+                                                   text-decoration:none; font-size:14px; border-bottom:1px solid var(--border);">
                             👤 حسابي وطلباتي
                         </a>
                         <a href="/Cart" style="display:block; padding:12px 16px; color:inherit;
-                                                   text-decoration:none; font-size:14px; border-bottom:1px solid #2a2a2a;">
+                                               text-decoration:none; font-size:14px; border-bottom:1px solid var(--border);">
                             🛒 سلة التسوق
                         </a>
                         <button onclick="logout()" style="display:block; width:100%; padding:12px 16px;
-                                    background:none; border:none; color:#ea868f; font-size:14px;
-                                    font-family:inherit; cursor:pointer; text-align:right;">
+                                background:none; border:none; color:#ea868f; font-size:14px;
+                                font-family:inherit; cursor:pointer; text-align:right;">
                             🚪 تسجيل الخروج
                         </button>
                     </div>
@@ -66,18 +66,22 @@
             }
             else
             {
-                <!-- غير مسجّل -->
-                <button class="nav-cta" onclick="window.location.href='/Login'">
-                    👤 تسجيل الدخول
-                </button>
+                <button class="nav-cta nav-login-btn" onclick="window.location.href='/Login'">
+    <img src="~/images/login.png" alt="login" 
+         style="width:18px; height:18px; object-fit:contain; vertical-align:middle;" />
+    <span class="login-text">تسجيل الدخول</span>
+</button>
             }
         </div>
 
-        <button class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع">
+        <!-- Theme Toggle — ظاهر دايمًا -->
+        <button class="theme-toggle" onclick="navToggleTheme()" title="تبديل الوضع">
             <span class="theme-icon sun">☀️</span>
             <span class="theme-icon moon">🌙</span>
         </button>
-        <div class="hamburger" onclick="toggleMobile()">
+
+        <!-- Hamburger -->
+        <div class="hamburger" id="hamburgerBtn" onclick="navToggleMobile()">
             <span></span><span></span><span></span>
         </div>
     </div>
@@ -104,10 +108,19 @@
     {
         <a class="nav-link" asp-page="/Login">👤 تسجيل الدخول</a>
     }
+
+    <!-- زر الثيم داخل المنيو على الموبايل -->
+    <div style="padding: 12px 16px; border-top: 1px solid var(--border); margin-top: 6px; display:flex; align-items:center; gap:12px;">
+        <span style="color:var(--text-secondary); font-size:14px;">🌓 تغيير المظهر</span>
+        <button class="theme-toggle" onclick="navToggleTheme()" title="تبديل الوضع" style="margin-right:auto;">
+            <span class="theme-icon sun">☀️</span>
+            <span class="theme-icon moon">🌙</span>
+        </button>
+    </div>
 </div>
 
 <script>
-    // Cart count من localStorage
+    // ── Cart count ──
     (function() {
         var cart = JSON.parse(localStorage.getItem('ec_cart') || '[]');
         var count = cart.reduce(function(s, i) { return s + i.qty; }, 0);
@@ -117,22 +130,46 @@
         if (elM) { elM.textContent = count; }
     })();
 
-    // Customer menu toggle
-    function toggleCustomerMenu() {
-        var dd = document.getElementById('customerDropdown');
-        if (dd) { dd.classList.toggle('open'); }
+    // ── Theme — مستقل عن site.js ──
+    function navToggleTheme() {
+        var html = document.documentElement;
+        var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('ec_theme', next);
+        // لو site.js محملة كمان نحدثها
+        if (typeof toggleTheme === 'function' && toggleTheme !== navToggleTheme) {
+            // مش بنكرر — اتنفذت فعلاً
+        }
     }
 
-    // Close menu when clicking outside
+    // ── Mobile nav — مستقل عن site.js ──
+    function navToggleMobile() {
+        var nav = document.getElementById('mobileNav');
+        if (nav) nav.classList.toggle('open');
+    }
+
+    // ── Customer menu ──
+    function toggleCustomerMenu() {
+        var dd = document.getElementById('customerDropdown');
+        if (dd) dd.classList.toggle('open');
+    }
+
+    // Close customer menu when clicking outside
     document.addEventListener('click', function(e) {
         var menu = document.getElementById('customerMenu');
         if (menu && !menu.contains(e.target)) {
             var dd = document.getElementById('customerDropdown');
-            if (dd) { dd.classList.remove('open'); }
+            if (dd) dd.classList.remove('open');
+        }
+        // Close mobile nav when clicking outside
+        var mNav = document.getElementById('mobileNav');
+        var hBtn = document.getElementById('hamburgerBtn');
+        if (mNav && hBtn && !mNav.contains(e.target) && !hBtn.contains(e.target)) {
+            mNav.classList.remove('open');
         }
     });
 
-    // Logout
+    // ── Logout ──
     function logout() {
         fetch('/api/proxy/logout', { method: 'POST' })
             .then(function() { window.location.href = '/'; });

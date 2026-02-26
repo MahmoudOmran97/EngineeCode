@@ -1,4 +1,4 @@
-using EngineeCode.Services;
+﻿using EngineeCode.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -43,11 +43,19 @@ namespace EngineeCode.Pages
                 StatusInt = order.StatusInt,
                 Total = order.Total,
                 CreatedAt = order.CreatedAt,
-                Items = order.Items,
+                
                 DeliveryCity = order.DeliveryCity,
                 DeliveryAddress = order.DeliveryAddress,
                 Notes = order.Notes,
                 PaymentMethod = order.PaymentMethod,
+                Items = order.Items.Select(i => new OrderItemDto
+                {
+                    ProductName = i.ProductName,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice,
+                    ProductId = i.ProductId,
+                    ImagePath = i.ImagePath  // ده هييجي كـ mouse-gm16.png
+                }).ToList()
             };
 
             return Page();
@@ -68,13 +76,14 @@ namespace EngineeCode.Pages
         public string? Notes { get; set; }
         public string? PaymentMethod { get; set; }
 
+
         public string PaymentMethodText => PaymentMethod switch
         {
             "1" or "CashOnDelivery" => "????? ??? ????????",
             "2" or "VodafoneCash" => "??????? ???",
             "3" or "InstaPay" => "????????",
             "4" or "Fawry" => "????",
-            _ => PaymentMethod ?? "�"
+            _ => PaymentMethod ?? "—"
         };
     }
 }

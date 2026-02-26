@@ -308,8 +308,10 @@
             @foreach (var item in order.Items)
             {
                 <div class="order-item-row">
-                    <img src="/images/placeholder.png" class="order-item-img"
-                         alt="@item.ProductName" />
+                    <img src="@(!string.IsNullOrEmpty(item.ImagePath) ? item.ImagePath : "/images/placeholder.png")"
+                         class="order-item-img"
+                         alt="@item.ProductName"
+                         onerror="this.src='/images/placeholder.png'" />
                     <div style="flex:1; min-width:0;">
                         <div class="order-item-name">@item.ProductName</div>
                         <div class="order-item-meta">

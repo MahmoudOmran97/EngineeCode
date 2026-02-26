@@ -345,6 +345,8 @@ namespace EngineeCode.Services
         public string ProductName { get; set; } = "";
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
+        public string? ImagePath { get; set; }  // ← أضف ده
+        public int? ProductId { get; set; }     // ← أضف ده
     }
 
     public class CreateOrderRequest

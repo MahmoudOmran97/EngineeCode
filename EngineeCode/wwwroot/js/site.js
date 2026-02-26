@@ -141,6 +141,12 @@ function updateCartCount() {
 function addToCart(product) {
     const cart = getCart();
     const existing = cart.find(i => i.id === product.id);
+
+    // خد الصورة الصح من images
+    const realImage = (product.images && product.images.length > 0)
+        ? (product.images.find(i => i.isMain)?.imagePath || product.images[0].imagePath)
+        : product.imagePath;
+
     if (existing) {
         if (existing.qty >= product.stock) {
             showToast('وصلت للحد الأقصى المتاح', '⚠️'); return;
@@ -152,8 +158,8 @@ function addToCart(product) {
             id: product.id,
             name: product.name,
             price: product.price,
-            image: product.imagePath,
-            imagePath: product.imagePath,
+            image: realImage,        // ← الصورة الصح
+            imagePath: realImage,    // ← الصورة الصح
             subName: product.subName || '',
             stock: product.stock || 99,
             qty: 1
@@ -162,7 +168,6 @@ function addToCart(product) {
     saveCart(cart);
     showToast(`تمت الإضافة: ${product.name}`, '🛒');
 }
-
 function removeFromCart(productId) {
     saveCart(getCart().filter(i => i.id !== productId));
 }
@@ -195,6 +200,11 @@ function starsHTML(rating) {
 //  RENDER — Product Card
 // ============================================================
 function productCardHTML(p) {
+    // خد الصورة من images لو موجودة، وإلا استخدم imagePath
+    const imgSrc = (p.images && p.images.length > 0)
+        ? p.images.find(i => i.isMain)?.imagePath || p.images[0].imagePath
+        : p.imagePath;
+
     const disc = p.discountPercent ? `<div class="badge-discount">خصم ${p.discountPercent}%</div>` : '';
     const oldP = p.oldPrice ? `<div class="price-old">${p.oldPrice} جنيه</div>` : '';
     const stock = p.stock <= 5 && p.stock > 0
@@ -202,7 +212,7 @@ function productCardHTML(p) {
     return `
     <div class="pcard" data-cat="${p.category}" onclick="goToProduct(${p.id})" style="cursor:pointer;">
         <div class="pcard-img">
-            <img src="/images/${p.imagePath}" alt="${p.name}" loading="lazy" onerror="this.src='/images/placeholder.png'">
+           <img src="${getImageSrc(imgSrc)}" alt="${p.name}" loading="lazy" onerror="this.src='/images/placeholder.png'">
             <div class="badge">${p.badge}</div>${disc}
         </div>
         <div class="pcard-body">
@@ -383,19 +393,21 @@ function renderProductDetail(p) {
         <button class="img-arrow left"  onclick="prevDetailImage()">&#8249;</button>
         <button class="img-arrow right" onclick="nextDetailImage()">&#8250;</button>` : '';
     const thumbs = detailImages.length > 1 ? `
-        <div class="modal-thumbs" style="margin-top:16px;">
-            ${detailImages.map((img, i) => `
-                <img src="/images/${img}" class="modal-thumb ${i === 0 ? 'active' : ''}"
-                     onclick="switchDetailImage(${i})" onerror="this.src='/images/placeholder.png'">`
+    <div style="width:100%; overflow-x:auto; overflow-y:hidden; display:flex; flex-wrap:nowrap; gap:8px; margin-top:12px; padding-bottom:8px;">
+        ${detailImages.map((img, i) => `
+            <img src="${getImageSrc(img)}"
+                 style="width:56px; height:56px; min-width:56px; flex-shrink:0; object-fit:contain; border-radius:10px; padding:4px; cursor:pointer; border:2px solid ${i === 0 ? 'var(--primary)' : 'transparent'}; background:var(--bg2);"
+                 onclick="switchDetailImage(${i})"
+                 onerror="this.src='/images/placeholder.png'">`
     ).join('')}
-        </div>` : '';
+    </div>` : '';
     wrap.innerHTML = `
-    <div class="detail-grid">
-        <div class="detail-img-wrap">
-            ${arrows}
-            <img id="detailMainImg" src="/images/${detailImages[0]}" alt="${p.name}" onerror="this.src='/images/placeholder.png'">
-            ${thumbs}
-        </div>
+<div class="detail-grid">
+    <div class="detail-img-wrap" style="overflow:hidden;">
+        ${arrows}
+        <img id="detailMainImg" src="${getImageSrc(detailImages[0])}" alt="${p.name}" onerror="this.src='/images/placeholder.png'">
+        ${thumbs}
+    </div>
         <div class="detail-info">
             <div class="modal-badge-row">
                 <span class="badge">${p.badge}</span>${disc}
@@ -426,8 +438,10 @@ function renderProductDetail(p) {
 
 function switchDetailImage(index) {
     detailImageIndex = index;
-    document.getElementById('detailMainImg').src = `/images/${detailImages[index]}`;
-    document.querySelectorAll('.modal-thumb').forEach((t, i) => t.classList.toggle('active', i === index));
+    document.getElementById('detailMainImg').src = getImageSrc(detailImages[index]);
+    document.querySelectorAll('.detail-img-wrap img:not(#detailMainImg)').forEach((t, i) => {
+        t.style.border = i === index ? '2px solid var(--primary)' : '2px solid transparent';
+    });
 }
 function nextDetailImage() { switchDetailImage((detailImageIndex + 1) % detailImages.length); }
 function prevDetailImage() { switchDetailImage((detailImageIndex - 1 + detailImages.length) % detailImages.length); }
@@ -459,7 +473,7 @@ function loadCartPage() {
         <div class="cart-items">
             ${cart.map(item => `
             <div class="cart-item">
-                <img src="/images/${item.image || item.imagePath}" alt="${item.name}" onerror="this.src='/images/placeholder.png'">
+               <img src="${getImageSrc(item.image || item.imagePath)}"  alt="${item.name}" onerror="this.src='/images/placeholder.png'">
                 <div class="cart-item-info">
                     <div class="cart-item-name">${item.name}</div>
                     <div class="cart-item-price">${item.price} جنيه</div>
@@ -560,3 +574,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (isServices) await loadServicesPage();
     if (isContact) initContactForm();
 });
+function getImageSrc(path) {
+    if (!path) return '/images/placeholder.png';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    if (path.startsWith('/')) return path;
+    return `/images/${path}`;
+}

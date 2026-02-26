@@ -6,7 +6,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ===== Razor Pages + API Controllers =====
 builder.Services.AddRazorPages();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options => {
+        options.JsonSerializerOptions.ReferenceHandler =
+            System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.PropertyNamingPolicy =
+            System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 
 // ===== EF Core — SQL Server =====
 builder.Services.AddDbContext<AppDbContext>(options =>
