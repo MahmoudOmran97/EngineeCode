@@ -41,23 +41,35 @@ namespace EngineeCode.Controllers
         // ============================================================
         //  POST api/proxy/verify-otp  ← LOGIN
         //  بيسيت CustomerEmail في الـ Session
+        //  ✅ فيكس: بيستخدم verify-login-otp، وبيرفض الدخول لو مفيش
+        //     Customer فعلي مسجل بنفس الإيميل — عشان محدش يدخل بحساب
+        //     غير مكتمل التسجيل حتى لو الكود صح.
         // ============================================================
         [HttpPost("verify-otp")]
         public async Task<IActionResult> VerifyOtp([FromBody] VerifyRequest req)
         {
-            var result = await _api.VerifyOtpAsync(req.Email, req.Code);
-            if (result.Success)
+            if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Code))
+                return Ok(new ApiResult { Success = false, Message = "الإيميل والكود مطلوبين" });
+
+            var result = await _api.VerifyLoginOtpAsync(req.Email, req.Code);
+            if (!result.Success)
+                return Ok(result);
+
+            // ✅ لازم يكون فيه Customer حقيقي قبل ما نفتح Session
+            var customer = await _api.GetCustomerByEmailAsync(req.Email);
+            if (customer == null)
             {
-                HttpContext.Session.SetString("CustomerEmail", req.Email);
-                var customer = await _api.GetCustomerByEmailAsync(req.Email);
-                if (customer != null)
+                return Ok(new ApiResult
                 {
-                    HttpContext.Session.SetString("CustomerName", customer.Name);
-                    HttpContext.Session.SetString("CustomerId", customer.Id.ToString()); // ✅
-                }
-                else
-                    HttpContext.Session.SetString("CustomerName", req.Email.Split('@')[0]);
+                    Success = false,
+                    Message = "الحساب غير مكتمل التسجيل. من فضلك أنشئ حساب جديد أولاً."
+                });
             }
+
+            HttpContext.Session.SetString("CustomerEmail", req.Email);
+            HttpContext.Session.SetString("CustomerName", customer.Name);
+            HttpContext.Session.SetString("CustomerId", customer.Id.ToString());
+
             return Ok(result);
         }
 

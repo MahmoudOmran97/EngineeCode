@@ -492,13 +492,17 @@
     <div class="checkout-form-col">
         <div class="form-section">
             <h5>🚚 بيانات التوصيل</h5>
-            <label class="form-label">المدينة / المحافظة *</label>
-            <select class="form-control" id="cityInput">
+            <label class="form-label">المحافظة *</label>
+            <select class="form-control" id="governorateInput">
                 <option value="">اختر المحافظة</option>
-                @foreach (var city in Model.Cities)
+                @foreach (var gov in Model.Governorates)
                 {
-                    <option value="@city">@city</option>
+                    <option value="@gov">@gov</option>
                 }
+            </select>
+            <label class="form-label">المدينة / المركز *</label>
+            <select class="form-control" id="cityInput" disabled>
+                <option value="">اختر المحافظة أولاً</option>
             </select>
             <label class="form-label">العنوان بالتفصيل *</label>
             <input type="text" class="form-control" id="addressInput" placeholder="الشارع، المنطقة، رقم المبنى" />
@@ -595,8 +599,11 @@
     </div>
 </div>
 
+<script src="~/js/egypt-locations.js" asp-append-version="true"></script>
 <script>
-    
+
+    wireGovernorateCityDropdown('governorateInput', 'cityInput');
+
     let cart = [], selectedPayment = 5;
 
     const PAYMENT_INFO = {
@@ -694,8 +701,15 @@
         });
     }
 
+    function buildCityValue() {
+        const gov  = document.getElementById('governorateInput').value;
+        const city = document.getElementById('cityInput').value;
+        if (gov && city) return gov + ' - ' + city;
+        return gov || '';
+    }
+
     async function submitOrder() {
-        const city    = document.getElementById('cityInput').value;
+        const city    = buildCityValue();
         const address = document.getElementById('addressInput').value.trim();
         const notes   = document.getElementById('notesInput').value.trim();
         try {
@@ -740,11 +754,13 @@
 
     async function placeOrder() {
         loadCart();
+        const gov     = document.getElementById('governorateInput').value;
         const city    = document.getElementById('cityInput').value;
         const address = document.getElementById('addressInput').value.trim();
 
         // ← Toast بدل alert
-        if (!city)        { showToast('⚠️ من فضلك اختر المحافظة أولاً'); return; }
+        if (!gov)         { showToast('⚠️ من فضلك اختر المحافظة أولاً'); return; }
+        if (!city)        { showToast('⚠️ من فضلك اختر المدينة / المركز'); return; }
         if (!address)     { showToast('⚠️ من فضلك أدخل العنوان بالتفصيل'); return; }
         if (!cart.length) { showToast('🛒 سلتك فاضية!'); return; }
 

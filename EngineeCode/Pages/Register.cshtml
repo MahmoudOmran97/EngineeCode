@@ -42,7 +42,7 @@
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
                 <div>
                     <label class="form-label">المحافظة</label>
-                    <select class="form-control-custom" id="cityInput" style="direction:rtl; padding:12px 10px;">
+                    <select class="form-control-custom" id="governorateInput" style="direction:rtl; padding:12px 10px;">
                         <option value="">اختر (اختياري)</option>
                         <option>القاهرة</option>
                         <option>الجيزة</option>
@@ -70,14 +70,22 @@
                         <option>جنوب سيناء</option>
                         <option>البحر الأحمر</option>
                         <option>الوادي الجديد</option>
+                        <option>دمياط</option>
                     </select>
                 </div>
                 <div>
-                    <label class="form-label">العنوان التفصيلي</label>
-                    <input type="text" class="form-control-custom" id="addressInput"
-                           placeholder="الشارع، المنطقة..."
-                           style="direction:rtl; text-align:right;" autocomplete="street-address" />
+                    <label class="form-label">المدينة / المركز</label>
+                    <select class="form-control-custom" id="cityInput" style="direction:rtl; padding:12px 10px;" disabled>
+                        <option value="">اختر المحافظة أولاً</option>
+                    </select>
                 </div>
+            </div>
+
+            <div style="margin-bottom:14px;">
+                <label class="form-label">العنوان التفصيلي</label>
+                <input type="text" class="form-control-custom" id="addressInput"
+                       placeholder="الشارع، المنطقة..."
+                       style="direction:rtl; text-align:right;" autocomplete="street-address" />
             </div>
 
             <button class="btn-gold" id="sendOtpBtn" onclick="sendOtp()">
@@ -129,9 +137,13 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/egypt-locations.js" asp-append-version="true"></script>
     <script>
         var userEmail = '';
         var timerInterval = null;
+
+        // ===== محافظة → مدينة (ديناميكي) =====
+        wireGovernorateCityDropdown('governorateInput', 'cityInput');
 
         // ===== OTP Inputs =====
         document.querySelectorAll('.otp-input').forEach(function(input, i, inputs) {
@@ -164,6 +176,14 @@
                 if (pasted.length === 6) registerWithOtp();
             });
         });
+
+        // ===== دمج المحافظة + المدينة في قيمة واحدة =====
+        function buildCityValue() {
+            var gov  = document.getElementById('governorateInput').value;
+            var city = document.getElementById('cityInput').value;
+            if (gov && city) return gov + ' - ' + city;
+            return gov || '';
+        }
 
         // ===== Validate Step 1 =====
         function validateStep1() {
@@ -235,7 +255,7 @@
                     name:    document.getElementById('nameInput').value.trim(),
                     phone:   document.getElementById('phoneInput').value.trim(),
                     email:   userEmail,
-                    city:    document.getElementById('cityInput').value,
+                    city:    buildCityValue(),
                     address: document.getElementById('addressInput').value.trim(),
                     otpCode: code
                 })

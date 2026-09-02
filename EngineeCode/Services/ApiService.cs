@@ -104,11 +104,23 @@ namespace EngineeCode.Services
             catch (Exception ex) { return new ApiResult { Success = false, Message = $"فشل الاتصال: {ex.Message}" }; }
         }
 
+        // ✅ للـ Register فقط — بيتحقق من الكود بس، من غير ما يشترط وجود Customer
         public async Task<ApiResult> VerifyOtpAsync(string email, string code)
         {
             try
             {
                 var res = await _http.PostAsJsonAsync($"{BaseUrl}/Auth/verify-otp", new { email, code });
+                return await ReadApiResult(res);
+            }
+            catch (Exception ex) { return new ApiResult { Success = false, Message = $"فشل الاتصال: {ex.Message}" }; }
+        }
+
+        // ✅ للـ Login فقط — نفس التحقق لكن على الـ endpoint المخصص لتسجيل الدخول
+        public async Task<ApiResult> VerifyLoginOtpAsync(string email, string code)
+        {
+            try
+            {
+                var res = await _http.PostAsJsonAsync($"{BaseUrl}/Auth/verify-login-otp", new { email, code });
                 return await ReadApiResult(res);
             }
             catch (Exception ex) { return new ApiResult { Success = false, Message = $"فشل الاتصال: {ex.Message}" }; }

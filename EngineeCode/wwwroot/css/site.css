@@ -120,6 +120,133 @@ body {
     opacity: .4;
 }
 
+/* ============================================================
+   SPACE LAYER — خلفية فضائية بستايل الألعاب (نجوم + سديم + شهب)
+   متوافقة مع ألوان الثيم (الأزرق والذهبي) في الوضعين الداكن/الفاتح
+============================================================ */
+.bg-circuit {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* -- طبقة النجوم الصغيرة (بعيدة، بطيئة الوميض) -- */
+.bg-circuit::before {
+    content: '';
+    position: absolute;
+    inset: -10%;
+    background-image:
+        radial-gradient(1.6px 1.6px at 20px 30px, rgba(232,240,254,.9), transparent),
+        radial-gradient(1.2px 1.2px at 90px 140px, rgba(139,175,212,.8), transparent),
+        radial-gradient(2px 2px at 160px 60px, rgba(232,240,254,.85), transparent),
+        radial-gradient(1.4px 1.4px at 220px 190px, rgba(100,181,246,.9), transparent),
+        radial-gradient(1.8px 1.8px at 40px 210px, rgba(232,240,254,.7), transparent),
+        radial-gradient(1.2px 1.2px at 270px 40px, rgba(139,175,212,.8), transparent),
+        radial-gradient(2.2px 2.2px at 130px 260px, rgba(245,166,35,.55), transparent),
+        radial-gradient(1.5px 1.5px at 300px 150px, rgba(232,240,254,.8), transparent);
+    background-repeat: repeat;
+    background-size: 320px 320px;
+    animation: starDrift 90s linear infinite, starTwinkle 3.5s ease-in-out infinite alternate;
+}
+
+/* -- طبقة النجوم الكبيرة/اللامعة (قريبة، تتحرك أبطأ في اتجاه مختلف) -- */
+.bg-circuit::after {
+    content: '';
+    position: absolute;
+    inset: -10%;
+    background-image:
+        radial-gradient(2.4px 2.4px at 60px 80px, rgba(255,255,255,.95), transparent),
+        radial-gradient(2px 2px at 340px 260px, rgba(100,181,246,1), transparent),
+        radial-gradient(3px 3px at 180px 340px, rgba(245,166,35,.8), transparent),
+        radial-gradient(2px 2px at 400px 60px, rgba(255,255,255,.9), transparent),
+        radial-gradient(2.6px 2.6px at 480px 320px, rgba(100,181,246,.9), transparent),
+        radial-gradient(2px 2px at 20px 380px, rgba(255,255,255,.85), transparent);
+    background-repeat: repeat;
+    background-size: 520px 520px;
+    animation: starDrift 150s linear infinite reverse, starTwinkle 4.5s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes starDrift {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(-320px, 220px, 0); }
+}
+
+@keyframes starTwinkle {
+    0%   { opacity: .5; }
+    100% { opacity: 1; }
+}
+
+/* -- سديم فضائي بألوان الثيم -- */
+.bg-nebula {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 55% 45% at 12% 18%, rgba(33,150,243,.22) 0%, transparent 70%),
+        radial-gradient(ellipse 45% 40% at 88% 12%, rgba(245,166,35,.10) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 50% at 80% 85%, rgba(100,181,246,.14) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 35% at 15% 90%, rgba(21,101,192,.16) 0%, transparent 70%);
+    animation: nebulaShift 30s ease-in-out infinite alternate;
+}
+
+@keyframes nebulaShift {
+    0%   { transform: scale(1) translate(0, 0); }
+    100% { transform: scale(1.08) translate(-1.5%, 1.5%); }
+}
+
+/* -- شهب عابرة -- */
+.bg-shootingstar {
+    position: fixed;
+    top: -5%;
+    left: 100%;
+    width: 140px;
+    height: 2px;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(232,240,254,0) 0%, rgba(232,240,254,.95) 60%, #fff 100%);
+    border-radius: 999px;
+    filter: drop-shadow(0 0 6px rgba(100,181,246,.8));
+    animation: shootAcross 7s linear infinite;
+    animation-delay: 2s;
+}
+
+.bg-shootingstar.delay2 {
+    top: 10%;
+    animation-duration: 9s;
+    animation-delay: 5.5s;
+    background: linear-gradient(90deg, rgba(245,166,35,0) 0%, rgba(245,166,35,.9) 60%, #fff 100%);
+    filter: drop-shadow(0 0 6px rgba(245,166,35,.7));
+}
+
+@keyframes shootAcross {
+    0%   { transform: translate(0, 0) rotate(-32deg); opacity: 0; }
+    4%   { opacity: 1; }
+    18%  { transform: translate(-140vw, 55vh) rotate(-32deg); opacity: 0; }
+    100% { transform: translate(-140vw, 55vh) rotate(-32deg); opacity: 0; }
+}
+
+[data-theme="light"] .bg-circuit::before,
+[data-theme="light"] .bg-circuit::after {
+    opacity: .5;
+}
+
+[data-theme="light"] .bg-nebula {
+    opacity: .5;
+}
+
+[data-theme="light"] .bg-shootingstar {
+    opacity: .6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bg-circuit::before, .bg-circuit::after, .bg-nebula, .bg-shootingstar {
+        animation: none;
+    }
+}
+
 .bg-alt {
     background: var(--bg-surface);
 }
