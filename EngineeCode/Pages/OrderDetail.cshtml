@@ -3,6 +3,16 @@
 @{
     ViewData["Title"] = "تفاصيل الطلب";
     Layout = "_Layout";
+
+    // الـ API بيرجع اسم الصورة مجرد ("mouse-gm16.png") من غير مسار،
+    // فكانت بتتحط زي ما هي في src فيفشل تحميلها. نفس المنطق المستخدم في السلة (Cart.cshtml).
+    string ImgSrc(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return "/images/placeholder.png";
+        if (path.StartsWith("http", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/"))
+            return path;
+        return "/images/" + path;
+    }
 }
 
 <style>
@@ -308,7 +318,7 @@
             @foreach (var item in order.Items)
             {
                 <div class="order-item-row">
-                    <img src="@(!string.IsNullOrEmpty(item.ImagePath) ? item.ImagePath : "/images/placeholder.png")"
+                    <img src="@ImgSrc(item.ImagePath)"
                          class="order-item-img"
                          alt="@item.ProductName"
                          onerror="this.src='/images/placeholder.png'" />

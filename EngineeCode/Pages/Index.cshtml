@@ -10,7 +10,18 @@
     <div class="hero-float b"></div>
     <div class="hero-chip"><div class="pulse"></div>أحدث عروض رمضان الكريم 2026 🌙</div>
     <h1>أفضل <span class="grad">مستلزمات الكمبيوتر</span><br>بأسعار لا تُقاوم</h1>
-    <p class="hero-sub">ماوس • كيبورد • سماعات • كاميرات<br>وسيستم كاشير احترافي لإدارة أعمالك</p>
+
+    <!-- بنر إعلانى — عدّل الصورة والنص والرابط زي ما يناسبك -->
+    <a asp-page="/Products" class="ad-banner reveal">
+        <span class="ad-banner-badge"><span class="pulse"></span> عرض محدود</span>
+        <img src="~/images/ad-banner.jpg" alt="عرض خاص" class="ad-banner-img" onerror="this.style.display='none'" />
+        <div class="ad-banner-content">
+            <h3>خصم يصل إلى <span class="grad">30%</span> على مستلزمات الكمبيوتر</h3>
+            <p>ماوس • كيبورد • سماعات • كاميرات وسيستم كاشير احترافي — لفترة محدودة</p>
+        </div>
+        <span class="ad-banner-cta">تسوق الآن ←</span>
+    </a>
+
     <div class="hero-actions">
         <a class="btn-hero primary" asp-page="/Products">🛒 تصفح المنتجات</a>
         <a class="btn-hero outline" asp-page="/Cashier">🖥️ نظام الكاشير</a>
