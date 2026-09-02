@@ -22,6 +22,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IContactService, ContactService>();
+builder.Services.AddScoped<IBannerService, BannerService>();   // ✅ جديد — البنرات الإعلانية
 
 // ===== HttpClient for API calls =====
 builder.Services.AddHttpClient<ApiService>();

@@ -11,6 +11,7 @@ namespace EngineeCode.Data
         public DbSet<ProductImage> ProductImages { get; set; }   // ✅ جديد
         public DbSet<Service> Services { get; set; }
         public DbSet<ContactMessage> ContactMessages { get; set; }
+        public DbSet<Banner> Banners { get; set; }                // ✅ جديد — البنرات الإعلانية
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -67,6 +68,39 @@ namespace EngineeCode.Data
                 e.Property(m => m.Subject).HasMaxLength(50);
                 e.Property(m => m.Message).IsRequired().HasMaxLength(2000);
             });
+
+            // ===== Banners ===== ✅ جديد
+            modelBuilder.Entity<Banner>(e =>
+            {
+                e.ToTable("Banners");
+                e.HasKey(b => b.Id);
+                e.Property(b => b.Title).HasMaxLength(200);
+                e.Property(b => b.Description).HasMaxLength(500);
+                e.Property(b => b.BadgeText).HasMaxLength(50);
+                e.Property(b => b.CtaText).HasMaxLength(50);
+                e.Property(b => b.ImagePath).IsRequired().HasMaxLength(500);
+                e.Property(b => b.TargetSlug).HasMaxLength(200);
+                e.Property(b => b.ExternalUrl).HasMaxLength(500);
+                e.HasIndex(b => b.IsActive);
+                e.HasIndex(b => b.SortOrder);
+            });
+
+            // ===== Seed Data — البنر الحالي كأول بنر =====
+            modelBuilder.Entity<Banner>().HasData(
+                new Banner
+                {
+                    Id = 1,
+                    Title = "خصم يصل إلى 30% على مستلزمات الكمبيوتر",
+                    Description = "ماوس • كيبورد • سماعات • كاميرات وسيستم كاشير احترافي — لفترة محدودة",
+                    BadgeText = "عرض محدود",
+                    CtaText = "تسوق الآن ←",
+                    ImagePath = "ad-banner.jpg",
+                    LinkType = BannerLinkType.Page,
+                    TargetSlug = "/Products",
+                    SortOrder = 1,
+                    IsActive = true
+                }
+            );
 
             // ===== Seed Data — المنتجات =====
             modelBuilder.Entity<Product>().HasData(

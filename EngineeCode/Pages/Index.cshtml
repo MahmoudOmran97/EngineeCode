@@ -11,16 +11,13 @@
     <div class="hero-chip"><div class="pulse"></div>أحدث عروض رمضان الكريم 2026 🌙</div>
     <h1>أفضل <span class="grad">مستلزمات الكمبيوتر</span><br>بأسعار لا تُقاوم</h1>
 
-    <!-- بنر إعلانى — عدّل الصورة والنص والرابط زي ما يناسبك -->
-    <a asp-page="/Products" class="ad-banner reveal">
-        <span class="ad-banner-badge"><span class="pulse"></span> عرض محدود</span>
-        <img src="~/images/ad-banner.jpg" alt="عرض خاص" class="ad-banner-img" onerror="this.style.display='none'" />
-        <div class="ad-banner-content">
-            <h3>خصم يصل إلى <span class="grad">30%</span> على مستلزمات الكمبيوتر</h3>
-            <p>ماوس • كيبورد • سماعات • كاميرات وسيستم كاشير احترافي — لفترة محدودة</p>
+    <!-- بنر إعلانى — بيتحمل ديناميكيًا من /api/banners (ممكن تضيف أكتر من عرض من الإدارة) -->
+    <div class="ad-banner-carousel reveal" id="bannerCarousel">
+        <div class="ad-banner-track" id="bannerTrack">
+            <div class="loading-spinner">جاري التحميل...</div>
         </div>
-        <span class="ad-banner-cta">تسوق الآن ←</span>
-    </a>
+        <div class="ad-banner-dots" id="bannerDots"></div>
+    </div>
 
     <div class="hero-actions">
         <a class="btn-hero primary" asp-page="/Products">🛒 تصفح المنتجات</a>
@@ -95,6 +92,96 @@
 
 @section Scripts {
     <script>
+        // ============================================================
+        //  بنر إعلانى — كاروسيل يدعم أكتر من عرض
+        // ============================================================
+        let bannerSlides = [];
+        let bannerIndex = 0;
+        let bannerTimer = null;
+
+        function bannerSlideHTML(b) {
+            const badge = b.badgeText
+                ? `<span class="ad-banner-badge"><span class="pulse"></span> ${b.badgeText}</span>`
+                : '';
+            return `
+            <div class="ad-banner" onclick="goToBanner(${b.id})">
+                ${badge}
+                <img src="${getImageSrc(b.imagePath)}" alt="${b.title}" class="ad-banner-img" onerror="this.style.display='none'" />
+                <div class="ad-banner-content">
+                    <h3>${b.title}</h3>
+                    <p>${b.description}</p>
+                </div>
+                <span class="ad-banner-cta">${b.ctaText}</span>
+            </div>`;
+        }
+
+        // يوجّه المستخدم حسب نوع اللينك المحفوظ فى البنر
+        function goToBanner(id) {
+            const b = bannerSlides.find(x => x.id === id);
+            if (!b) return;
+
+            switch (b.linkType) {
+                case 'Product':
+                    window.location.href = `/ProductDetail?id=${b.targetId}`;
+                    break;
+                case 'Category':
+                    window.location.href = `/Products?category=${encodeURIComponent(b.targetSlug || '')}`;
+                    break;
+                case 'Page':
+                    window.location.href = b.targetSlug || '/';
+                    break;
+                case 'ExternalUrl':
+                    if (b.externalUrl) window.open(b.externalUrl, '_blank');
+                    break;
+                default:
+                    // None — بنر عرض بس من غير تفاعل
+                    break;
+            }
+        }
+
+        function showBannerSlide(i) {
+            const track = document.getElementById('bannerTrack');
+            if (!track) return;
+            track.style.transform = `translateX(${i * 100}%)`;
+            document.querySelectorAll('#bannerDots .dot').forEach((d, idx) => {
+                d.classList.toggle('active', idx === i);
+            });
+            bannerIndex = i;
+        }
+
+        function startBannerAutoRotate() {
+            if (bannerTimer) clearInterval(bannerTimer);
+            if (bannerSlides.length <= 1) return;
+            bannerTimer = setInterval(() => {
+                showBannerSlide((bannerIndex + 1) % bannerSlides.length);
+            }, 5000);
+        }
+
+        async function loadBanners() {
+            const wrap = document.getElementById('bannerCarousel');
+            const track = document.getElementById('bannerTrack');
+            const dots = document.getElementById('bannerDots');
+            try {
+                const res = await fetch('/api/banners');
+                bannerSlides = await res.json();
+
+                if (!bannerSlides.length) {
+                    wrap.style.display = 'none';
+                    return;
+                }
+
+                track.innerHTML = bannerSlides.map(bannerSlideHTML).join('');
+                dots.innerHTML = bannerSlides.length > 1
+                    ? bannerSlides.map((_, i) => `<span class="dot" onclick="showBannerSlide(${i})"></span>`).join('')
+                    : '';
+
+                showBannerSlide(0);
+                startBannerAutoRotate();
+            } catch (e) {
+                wrap.style.display = 'none';
+            }
+        }
+
         // جلب المنتجات المميزة من API
         async function loadFeaturedProducts() {
             try {
@@ -119,6 +206,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            loadBanners();
             loadFeaturedProducts();
             loadServices();
             animateCounters();
